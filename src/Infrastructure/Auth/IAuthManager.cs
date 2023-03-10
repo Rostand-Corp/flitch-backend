@@ -9,11 +9,13 @@ public interface IAuthManager
 
     public Task<IdentityUser> Login(string username, string password);
 
-    public Task ResetPassword(string email);
+    public Task ResetPassword(string email, string oldPassword, string newPassword);
 
     public Task ConfirmEmail(string userId, string token);
 
-    public Task ResendEmailConfirmation(string userId);
+    public Task ResendEmailConfirmationById(string userId);
+
+    public Task ResendEmailConfirmationByEmail(string email);
 
     public Task<IEnumerable<Claim>> RetrieveClaims(IdentityUser user);
 
