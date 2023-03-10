@@ -99,9 +99,29 @@ public class AuthManager : IAuthManager
         return user;
     }
 
-    public Task ResetPassword(string email)
+    public async Task ResetPassword(string email, string oldPassword, string newPassword)
     {
-        throw new NotImplementedException();
+        var validationProblems = new List<string>();
+
+        if (string.IsNullOrEmpty(email)) validationProblems.Add("Email must be specified");
+        if (string.IsNullOrEmpty(oldPassword)) validationProblems.Add("Old password must be specified");
+        if (string.IsNullOrEmpty(newPassword)) validationProblems.Add("New password must be specified");
+
+        if (validationProblems.Count != 0)
+        {
+            var errorMessage = string.Join("\r\n", validationProblems);
+            throw new AuthenticationException(errorMessage);
+        }
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
+
+        if (!user.EmailConfirmed) throw new AuthenticationException("email not confirmed");
+
+        var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+
+        if (!result.Succeeded) throw new AuthenticationException(result.ToString());
     }
 
     public async Task ConfirmEmail(string userId, string emailToken)
@@ -132,14 +152,29 @@ public class AuthManager : IAuthManager
         }
     }
 
-    public async Task ResendEmailConfirmation(string userId)
+    public async Task ResendEmailConfirmationById(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) throw new AuthenticationException("doesnt exist");
 
+        await ResendEmailConfirmation(user);
+    }
+
+    public async Task
+        ResendEmailConfirmationByEmail(
+            string email) // Validate for correctness of email structure I guess (are we going ddd?)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null) throw new AuthenticationException("doesnt exist");
+        await ResendEmailConfirmation(user);
+    }
+
+    private async Task ResendEmailConfirmation(IdentityUser user)
+    {
         if (user is null)
         {
             _logger.LogWarning("e-mail couldn't be resent because specified user does not exist");
-            throw new AuthenticationException("already confirmed!!!!!!!");
+            throw new AuthenticationException("doesn't exist");
         }
         
         if (user.EmailConfirmed)

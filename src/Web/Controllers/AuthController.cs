@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Infrastructure.Auth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Web.Controllers
 {
@@ -70,19 +70,29 @@ namespace Web.Controllers
         [Route("resend-confirmation")]
         public async Task<IActionResult> ResendEmailConfirmation()
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
-            await _authManager.ResendEmailConfirmation(userId);
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value; // Validate
+            await _authManager.ResendEmailConfirmationByEmail(userEmail);
             return Ok();
 
         }
-        
-        [HttpGet]
+
+        [Authorize]
+        [HttpPost]
         [Route("reset-password")]
-        public IActionResult ResetPassword(ResetPassModel request)
+        public async Task<IActionResult> ResetPassword(ResetPassModel request)
         {
-            _authManager.ResetPassword(request.Email!);
+            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value; // Validate
+            await _authManager.ResetPassword(userEmail!, request.OldPassword!, request.NewPassword!);
             return Ok();
         }
+
+        [HttpPost]
+        [Route("forgot-password")]
+        public IActionResult ForgotPassword()
+        {
+            return Ok();
+        }
+        
 
         [Authorize]
         [HttpGet]
@@ -135,11 +145,17 @@ namespace Web.Controllers
         public string? Password { get; set; }
     }
 
-    public class ResetPassModel
+    public class ForgotPassModel
     {
         [Required]
         [EmailAddress]
         public string? Email { get; set; }
+    }
+
+    public class ResetPassModel
+    {
+        [Required] [MinLength(6)] public string? OldPassword { get; set; }
+        [Required] [MinLength(6)] public string? NewPassword { get; set; }
     }
 
     public class Response
