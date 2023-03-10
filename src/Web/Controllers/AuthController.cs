@@ -81,8 +81,8 @@ namespace Web.Controllers
         [Route("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPassModel request)
         {
-            var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value; // Validate
-            await _authManager.ResetPassword(userEmail!, request.OldPassword!, request.NewPassword!);
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
+            await _authManager.ResetPassword(userId!, request.OldPassword!, request.NewPassword!);
             return Ok();
         }
 
