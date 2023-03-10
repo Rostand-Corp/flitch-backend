@@ -11,6 +11,10 @@ public interface IAuthManager
 
     public Task ResetPassword(string email, string oldPassword, string newPassword);
 
+    public Task SendForgotPasswordResetEmail(string email);
+
+    public Task ResetForgotPassword(string email, string token, string newPassword);
+
     public Task ConfirmEmail(string userId, string token);
 
     public Task ResendEmailConfirmationById(string userId);

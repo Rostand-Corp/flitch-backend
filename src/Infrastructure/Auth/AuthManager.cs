@@ -122,6 +122,49 @@ public class AuthManager : IAuthManager
         if (!result.Succeeded) throw new AuthenticationException(result.ToString());
     }
 
+    public async Task SendForgotPasswordResetEmail(string email)
+    {
+        if (string.IsNullOrEmpty(email)) throw new AuthenticationException("e-mail must be specified");
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
+
+        if (!user.EmailConfirmed) throw new AuthenticationException("cannot reset pass cuz email not confirmed");
+
+        var resetToken = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
+        await _emailSender.SendEmailAsync(email, "Password reset : Flitch",
+            $"Follow this link to reset your password: {resetToken}"); // Atm I don't attach it to an anchor for the sake of testability
+        _logger.LogInformation("Password reset e-mail has been queued to {UserName} ({Email})",
+            user.UserName, user.Email);
+    }
+
+    public async Task
+        ResetForgotPassword(string email, string token, string newPassword) // validate password once more?
+    {
+        var validationProblems = new List<string>();
+
+        if (string.IsNullOrEmpty(email)) validationProblems.Add("e-mail must be specified");
+        if (string.IsNullOrEmpty(token)) validationProblems.Add("Token must be specified");
+        if (string.IsNullOrEmpty(newPassword)) validationProblems.Add("New password must be specified");
+
+        if (validationProblems.Count != 0)
+        {
+            var errorMessage = string.Join("\r\n", validationProblems);
+            throw new AuthenticationException(errorMessage);
+        }
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
+
+        var decodedToken = HttpUtility.UrlDecode(token);
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
+
+        if (!result.Succeeded) throw new AuthenticationException(result.ToString());
+        _logger.LogInformation("Password has been reset for {UserName} ({Email})", user.UserName, user.Email);
+    }
+
     public async Task ConfirmEmail(string userId, string emailToken)
     {
         if (string.IsNullOrEmpty(userId))
@@ -167,7 +210,7 @@ public class AuthManager : IAuthManager
         await ResendEmailConfirmation(user);
     }
 
-    private async Task ResendEmailConfirmation(IdentityUser user)
+    private async Task ResendEmailConfirmation(IdentityUser user) // no async maybe
     {
         if (user is null)
         {

@@ -58,7 +58,9 @@ namespace Web.Controllers
         [Authorize]
         [HttpPost]
         [Route("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail(string token) // Well, I wonder if I can just fire and forget this. Need to resolve disposal problems then
+        public async Task<IActionResult>
+            ConfirmEmail(
+                [Required] string token) // Well, I wonder if I can just fire and forget this. Need to resolve disposal problems then
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
             await _authManager.ConfirmEmail(userId, token);
@@ -79,19 +81,29 @@ namespace Web.Controllers
         [Authorize]
         [HttpPost]
         [Route("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPassModel request)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPassModel request)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
             await _authManager.ResetPassword(userId!, request.OldPassword!, request.NewPassword!);
             return Ok();
         }
-
+        
         [HttpPost]
         [Route("forgot-password")]
-        public IActionResult ForgotPassword()
+        public async Task<IActionResult> SendForgotPasswordResetEmail([FromBody] ForgotPassModel request)
         {
+            await _authManager.SendForgotPasswordResetEmail(request.Email!);
             return Ok();
         }
+
+        [HttpPost]
+        [Route("reset-forgot-password")]
+        public async Task<IActionResult> ResetForgotPassword([FromBody] ResetForgotPassModel request)
+        {
+            await _authManager.ResetForgotPassword(request.Email!, request.Token!, request.Password!);
+            return Ok();
+        }
+        
         
 
         [Authorize]
@@ -156,6 +168,13 @@ namespace Web.Controllers
     {
         [Required] [MinLength(6)] public string? OldPassword { get; set; }
         [Required] [MinLength(6)] public string? NewPassword { get; set; }
+    }
+
+    public class ResetForgotPassModel
+    {
+        [Required] public string? Password { get; set; }
+        [Required] [EmailAddress] public string? Email { get; set; }
+        [Required] public string? Token { get; set; }
     }
 
     public class Response
