@@ -99,11 +99,11 @@ public class AuthManager : IAuthManager
         return user;
     }
 
-    public async Task ResetPassword(string email, string oldPassword, string newPassword)
+    public async Task ResetPassword(string userId, string oldPassword, string newPassword)
     {
         var validationProblems = new List<string>();
 
-        if (string.IsNullOrEmpty(email)) validationProblems.Add("Email must be specified");
+        if (string.IsNullOrEmpty(userId)) validationProblems.Add("UserId must be specified");
         if (string.IsNullOrEmpty(oldPassword)) validationProblems.Add("Old password must be specified");
         if (string.IsNullOrEmpty(newPassword)) validationProblems.Add("New password must be specified");
 
@@ -113,11 +113,9 @@ public class AuthManager : IAuthManager
             throw new AuthenticationException(errorMessage);
         }
 
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await _userManager.FindByIdAsync(userId);
 
         if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
-
-        if (!user.EmailConfirmed) throw new AuthenticationException("email not confirmed");
 
         var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
 
