@@ -1,6 +1,6 @@
-using System.Security.Authentication;
 using System.Security.Claims;
 using System.Web;
+using Infrastructure.Auth.Results;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -20,15 +20,28 @@ public class AuthManager : IAuthManager
         _logger = logger;
     }
 
-    public async Task<IdentityUser> RegisterUser(string username, string email, string password)
+    public async Task<RegistrationResult> RegisterUser(string username, string email, string password)
     {
-        var userExists = await _userManager.FindByNameAsync(username) is not null;
-        if (userExists)
+        var userNameTaken = await _userManager.FindByNameAsync(username) is not null;
+        if (userNameTaken)
         {
-            _logger.LogWarning("Could not create the user because the user with such nickname already exists");
-            throw new AuthenticationException(); // Tf is this type?
+            _logger.LogInformation("Could not create the user because the user with such nickname already exists");
+            return new RegistrationResult.UserNameTaken
+            {
+                ErrorMessage = "User already exists"
+            };
         }
 
+        var emailNameTaken = await _userManager.FindByEmailAsync(username) is not null;
+        if (userNameTaken)
+        {
+            _logger.LogInformation("Could not create the user because the user with such email already exists");
+            return new RegistrationResult.EmailTaken
+            {
+                ErrorMessage = "User already exists"
+            };
+        }
+        
         IdentityUser user = new()
         {
             Email = email,
@@ -39,13 +52,19 @@ public class AuthManager : IAuthManager
         var result = await _userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
-            _logger.LogWarning("Could not create the user because of one or more errors occurred");
-            throw new AuthenticationException(result.ToString()); // we'll change this too
+            _logger.LogInformation("Could not create the user because of one or more errors occurred");
+            return new RegistrationResult.ValidationError
+            {
+                ErrorMessages = result.Errors.Select(error => error.Description)
+            };
         }
 
         await SendConfirmationEmail(user, email);
         _logger.LogInformation("User {UserName} has been successfully created", username);
-        return user;
+        return new RegistrationResult.Success
+        {
+            User = user
+        };
     }
 
     private async Task SendConfirmationEmail(IdentityUser user, string? email = null)
@@ -57,11 +76,10 @@ public class AuthManager : IAuthManager
         }
         
         var userEmail = email ?? user.Email;
-        // Validate once more?
 
-        var emailToken = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user)); // Maybe base64?
+        var emailToken = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
         await _emailSender.SendEmailAsync(userEmail, "e-Mail confirmation : Flitch",
-            $"Please confirm your email: {emailToken}"); // Atm I don't attach it to an anchor for the sake of testability
+            $"Please confirm your email: {emailToken}");
         _logger.LogInformation("Confirmation e-mail has been queued to {UserName} ({Email})",
             user.Email, user.UserName);
     }
@@ -70,7 +88,8 @@ public class AuthManager : IAuthManager
     {
         if(string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("Confirmation e-mail could not be sent because specified user Id value is null or empty");
+            _logger.LogInformation(
+                "Confirmation e-mail could not be sent because specified user Id value is null or empty");
             throw new ArgumentException("Must not be null or empty", nameof(userId));
         }
         var user = await _userManager.FindByIdAsync(userId);
@@ -78,158 +97,275 @@ public class AuthManager : IAuthManager
         await SendConfirmationEmail(user, email);
     }
 
-    public async Task<IdentityUser> Login(string username, string password)
+    public async Task<LoginResult> Login(string username, string password)
     {
+        var validationMessages = new List<string>();
+
+        if (string.IsNullOrEmpty(username)) validationMessages.Add("Username must be specified");
+
+        if (string.IsNullOrEmpty(password)) validationMessages.Add("Password must be specified");
+
+        if (validationMessages.Any())
+            return new LoginResult.ValidationError
+            {
+                ErrorMessages = validationMessages
+            };
+
         var user = await _userManager.FindByNameAsync(username);
 
         if (user is null)
         {
-            _logger.LogWarning("Could not create the user because the user with such nickname does not exist");
-            throw new AuthenticationException("NOUSER"); // yep also here
+            _logger.LogInformation("Could not create the user because the user with such nickname does not exist");
+            return new LoginResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
         }
 
         if (!await _userManager.CheckPasswordAsync(user, password))
         {
-            _logger.LogWarning("Password supplied for could not be verified for {UserName} ({Email})",
+            _logger.LogInformation("The password supplied could not be verified for {UserName} ({Email})",
                 user.UserName, user.Email);
-            throw new AuthenticationException("Wrong pass"); // !
+            return new LoginResult.InvalidPassword
+            {
+                ErrorMessage = "Provided password is invalid"
+            };
         }
 
         _logger.LogInformation("User {UserName} has successfully logged in", username);
-        return user;
+
+        return new LoginResult.Success
+        {
+            User = user
+        };
     }
 
-    public async Task ResetPassword(string userId, string oldPassword, string newPassword)
+    public async Task<ResetKnownPasswordResult> ResetPassword(string userId, string oldPassword, string newPassword)
     {
-        var validationProblems = new List<string>();
+        var validationMessages = new List<string>();
 
-        if (string.IsNullOrEmpty(userId)) validationProblems.Add("UserId must be specified");
-        if (string.IsNullOrEmpty(oldPassword)) validationProblems.Add("Old password must be specified");
-        if (string.IsNullOrEmpty(newPassword)) validationProblems.Add("New password must be specified");
+        if (string.IsNullOrEmpty(userId)) validationMessages.Add("UserId must be specified");
+        if (string.IsNullOrEmpty(oldPassword)) validationMessages.Add("Old password must be specified");
+        if (string.IsNullOrEmpty(newPassword)) validationMessages.Add("New password must be specified");
 
-        if (validationProblems.Count != 0)
+        if (validationMessages.Any())
         {
-            var errorMessage = string.Join("\r\n", validationProblems);
-            throw new AuthenticationException(errorMessage);
+            return new ResetKnownPasswordResult.ValidationError
+            {
+                ErrorMessages = validationMessages
+            };
         }
 
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
+        if (user is null)
+            return new ResetKnownPasswordResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
 
         var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
 
-        if (!result.Succeeded) throw new AuthenticationException(result.ToString());
+        if (!result.Succeeded)
+            return new ResetKnownPasswordResult.ValidationError
+            {
+                ErrorMessages = result.Errors.Select(error => error.Description)
+            };
+
+        return new ResetKnownPasswordResult.Success
+        {
+            Message = "Password has been successfully changed"
+        };
     }
 
-    public async Task SendForgotPasswordResetEmail(string email)
+    public async Task<SendForgotPasswordResetEmailResult> SendForgotPasswordResetEmail(string email)
     {
-        if (string.IsNullOrEmpty(email)) throw new AuthenticationException("e-mail must be specified");
+        if (string.IsNullOrEmpty(email))
+            return new SendForgotPasswordResetEmailResult.ValidationError
+            {
+                ErrorMessages = new List<string> {"e-mail must not be null or empty"}
+            };
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
+        if (user is null)
+            return new SendForgotPasswordResetEmailResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
 
-        if (!user.EmailConfirmed) throw new AuthenticationException("cannot reset pass cuz email not confirmed");
+        if (!user.EmailConfirmed)
+            return new SendForgotPasswordResetEmailResult.EmailNotConfirmed
+            {
+                ErrorMessage = "e-mail was not confirmed by the user"
+            };
 
         var resetToken = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
         await _emailSender.SendEmailAsync(email, "Password reset : Flitch",
-            $"Follow this link to reset your password: {resetToken}"); // Atm I don't attach it to an anchor for the sake of testability
+            $"Follow this link to reset your password: {resetToken}");
         _logger.LogInformation("Password reset e-mail has been queued to {UserName} ({Email})",
             user.UserName, user.Email);
+
+        return new SendForgotPasswordResetEmailResult.Success
+        {
+            Message =
+                "Password reset email has been queued. If you cannot see an email then consider requesting new message"
+        };
     }
 
-    public async Task
-        ResetForgotPassword(string email, string token, string newPassword) // validate password once more?
+    public async Task<ResetForgotPasswordResult>
+        ResetForgotPassword(string email, string token, string newPassword)
     {
-        var validationProblems = new List<string>();
+        var validationMessages = new List<string>();
 
-        if (string.IsNullOrEmpty(email)) validationProblems.Add("e-mail must be specified");
-        if (string.IsNullOrEmpty(token)) validationProblems.Add("Token must be specified");
-        if (string.IsNullOrEmpty(newPassword)) validationProblems.Add("New password must be specified");
+        if (string.IsNullOrEmpty(email)) validationMessages.Add("e-mail must be specified");
+        if (string.IsNullOrEmpty(token)) validationMessages.Add("Token must be specified");
+        if (string.IsNullOrEmpty(newPassword)) validationMessages.Add("New password must be specified");
 
-        if (validationProblems.Count != 0)
+        if (validationMessages.Any())
         {
-            var errorMessage = string.Join("\r\n", validationProblems);
-            throw new AuthenticationException(errorMessage);
+            return new ResetForgotPasswordResult.ValidationError
+            {
+                ErrorMessages = validationMessages
+            };
         }
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user is null) throw new AuthenticationException("cannot reset password cuz there is no such user");
+        if (user is null)
+            return new ResetForgotPasswordResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
+
+        if (!user.EmailConfirmed)
+            return new ResetForgotPasswordResult.EmailNotConfirmed
+            {
+                ErrorMessage = "e-mail was not confirmed by the user"
+            };
 
         var decodedToken = HttpUtility.UrlDecode(token);
         var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
 
-        if (!result.Succeeded) throw new AuthenticationException(result.ToString());
+        if (!result.Succeeded)
+            return new ResetForgotPasswordResult.ValidationError
+            {
+                ErrorMessages = result.Errors.Select(error => error.Description)
+            };
         _logger.LogInformation("Password has been reset for {UserName} ({Email})", user.UserName, user.Email);
+
+        return new ResetForgotPasswordResult.Success
+        {
+            Message = "Password has been successfully reset"
+        };
     }
 
-    public async Task ConfirmEmail(string userId, string emailToken)
+    public async Task<EmailConfirmationResult> ConfirmEmail(string userId, string emailToken)
     {
+        var validationMessages = new List<string>();
+        
         if (string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("e-mail couldn't be confirmed because specified user Id value is null or empty");
-            throw new ArgumentException("User id must be not be null or empty");
+            validationMessages.Add("User id must be not be null or empty");
         }
+
+        if (validationMessages.Any())
+            return new EmailConfirmationResult.ValidationError
+            {
+                ErrorMessages = validationMessages
+            };
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
         {
-            _logger.LogWarning("e-mail couldn't be confirmed because specified user does not exist");
-            throw new AuthenticationException("no such user");
+            return new EmailConfirmationResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
         }
 
         if (user.EmailConfirmed)
         {
-            _logger.LogWarning("e-mail is already confirmed for {UserName}", user.UserName);
-            throw new AuthenticationException("already confirmed!!!!!!!");
+            _logger.LogInformation("e-mail is already confirmed for {UserName}", user.UserName);
+            return new EmailConfirmationResult.EmailAlreadyConfirmed
+            {
+                ErrorMessage = "Email is already confirmed"
+            };
         }
-        
-        var result = await _userManager.ConfirmEmailAsync(user, emailToken); // It will run its own validations on arguments anyway.
+
+        var result = await _userManager.ConfirmEmailAsync(user, emailToken);
         if (!result.Succeeded)
         {
-            _logger.LogWarning("e-mail couldn't be confirmed because of one or more problems occurred");
-            throw new AuthenticationException(result.ToString());
+            _logger.LogInformation("e-mail couldn't be confirmed because of one or more problems occurred");
+            return new EmailConfirmationResult.ValidationError
+            {
+                ErrorMessages = result.Errors.Select(error => error.Description)
+            };
         }
+
+        return new EmailConfirmationResult.Success
+        {
+            Message = "Email has been successfully confirmed"
+        };
     }
 
-    public async Task ResendEmailConfirmationById(string userId)
+    public async Task<ResendEmailConfirmationResult> ResendEmailConfirmationById(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user is null) throw new AuthenticationException("doesnt exist");
+        if (user is null)
+            return new ResendEmailConfirmationResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
 
-        await ResendEmailConfirmation(user);
+        return await ResendEmailConfirmation(user);
     }
 
-    public async Task
+    public async Task<ResendEmailConfirmationResult>
         ResendEmailConfirmationByEmail(
-            string email) // Validate for correctness of email structure I guess (are we going ddd?)
+            string email)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        if (user is null) throw new AuthenticationException("doesnt exist");
-        await ResendEmailConfirmation(user);
+        if (user is null)
+            return new ResendEmailConfirmationResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
+        return await ResendEmailConfirmation(user);
     }
 
-    private async Task ResendEmailConfirmation(IdentityUser user) // no async maybe
+    private async Task<ResendEmailConfirmationResult> ResendEmailConfirmation(IdentityUser user)
     {
         if (user is null)
         {
-            _logger.LogWarning("e-mail couldn't be resent because specified user does not exist");
-            throw new AuthenticationException("doesn't exist");
+            _logger.LogInformation("e-mail couldn't be resent because specified user does not exist");
+            return new ResendEmailConfirmationResult.UserDoesntExist
+            {
+                ErrorMessage = "User doesn't exist"
+            };
         }
         
         if (user.EmailConfirmed)
         {
-            _logger.LogWarning("e-mail is already confirmed for {UserName}", user.UserName);
-            throw new AuthenticationException("already confirmed!!!!!!!");
+            _logger.LogInformation("e-mail is already confirmed for {UserName}", user.UserName);
+            return new ResendEmailConfirmationResult.EmailAlreadyConfirmed
+            {
+                ErrorMessage = "e-mail is already confirmed"
+            };
         }
 
         _logger.LogInformation("Resending email confirmation...");
         await SendConfirmationEmail(user);
+        return new ResendEmailConfirmationResult.Success
+        {
+            Message = "Confirmation e-mail has been resent"
+        };
     }
 
-    public async Task<IEnumerable<Claim>> RetrieveClaims(IdentityUser user)
+    public async Task<IEnumerable<Claim>> RetrieveClaims(string userId)
     {
+        var user = await _userManager.FindByIdAsync(userId);
+        
         var claims = new List<Claim>()
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),

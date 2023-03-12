@@ -1,26 +1,26 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
+using Infrastructure.Auth.Results;
 
 namespace Infrastructure.Auth;
 
 public interface IAuthManager
 {
-    public Task<IdentityUser> RegisterUser(string username, string email, string password);
+    public Task<RegistrationResult> RegisterUser(string username, string email, string password);
 
-    public Task<IdentityUser> Login(string username, string password);
+    public Task<LoginResult> Login(string username, string password);
 
-    public Task ResetPassword(string email, string oldPassword, string newPassword);
+    public Task<ResetKnownPasswordResult> ResetPassword(string email, string oldPassword, string newPassword);
 
-    public Task SendForgotPasswordResetEmail(string email);
+    public Task<SendForgotPasswordResetEmailResult> SendForgotPasswordResetEmail(string email);
 
-    public Task ResetForgotPassword(string email, string token, string newPassword);
+    public Task<ResetForgotPasswordResult> ResetForgotPassword(string email, string token, string newPassword);
 
-    public Task ConfirmEmail(string userId, string token);
+    public Task<EmailConfirmationResult> ConfirmEmail(string userId, string token);
 
-    public Task ResendEmailConfirmationById(string userId);
+    public Task<ResendEmailConfirmationResult> ResendEmailConfirmationById(string userId);
 
-    public Task ResendEmailConfirmationByEmail(string email);
+    public Task<ResendEmailConfirmationResult> ResendEmailConfirmationByEmail(string email);
 
-    public Task<IEnumerable<Claim>> RetrieveClaims(IdentityUser user);
+    public Task<IEnumerable<Claim>> RetrieveClaims(string userId);
 
 }
