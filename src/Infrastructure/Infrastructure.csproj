@@ -6,12 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.3"/>
-      <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.2.0"/>
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3"/>
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.3"/>
-      <PackageReference Include="SendGrid" Version="9.28.1"/>
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.3"/>
+        <PackageReference Include="Microsoft.AspNetCore.Routing.Abstractions" Version="2.2.0"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.3"/>
+        <PackageReference Include="SendGrid" Version="9.28.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Exceptions"/>
+    </ItemGroup>
 
 </Project>
