@@ -42,8 +42,7 @@ namespace Web.Controllers
                 LoginResult.UserDoesntExist res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NoUser"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
         }
 
@@ -66,8 +65,7 @@ namespace Web.Controllers
                 RegistrationResult.EmailTaken res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.EmailTaken"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
 
         }
@@ -94,8 +92,7 @@ namespace Web.Controllers
                 EmailConfirmationResult.EmailAlreadyConfirmed res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.EmailAlreadyConfirmed"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
         }
 
@@ -119,8 +116,7 @@ namespace Web.Controllers
                 ResendEmailConfirmationResult.EmailAlreadyConfirmed res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.EmailAlreadyConfirmed"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
 
         }
@@ -142,8 +138,7 @@ namespace Web.Controllers
                 ResetKnownPasswordResult.ValidationError res =>
                     Problem(ErrorMessagesToString(res.ErrorMessages), statusCode: 401,
                         title: "Authentication problem", type: "Auth.Validation"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
         }
         
@@ -165,8 +160,7 @@ namespace Web.Controllers
                 SendForgotPasswordResetEmailResult.EmailNotConfirmed res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.EmailNotConfirmed"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
         }
 
@@ -188,8 +182,7 @@ namespace Web.Controllers
                 ResetForgotPasswordResult.EmailNotConfirmed res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.EmailNotConfirmed"),
-                _ => Problem("Internal problem occurred", statusCode: 500, title: "Critical problem",
-                    type: "Critical")
+                _ => throw new NotImplementedException()
             };
         }
         
@@ -226,7 +219,7 @@ namespace Web.Controllers
             };
         }
 
-        private string ErrorMessagesToString(IEnumerable<string> messages)
+        private static string ErrorMessagesToString(IEnumerable<string> messages)
         {
             return string.Join("\r\n", messages);
         }
