@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using Infrastructure.Auth;
 using Infrastructure.Data;
@@ -71,8 +72,12 @@ builder.Services.Configure<AuthMessageSenderOptions>(o =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+#region Swagger 
 builder.Services.AddSwaggerGen(o =>
 {
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -98,14 +103,19 @@ builder.Services.AddSwaggerGen(o =>
         }
     });
 });
+#endregion
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseStaticFiles();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(o =>
+    {
+        o.InjectStylesheet("/assets/css/swagger-theme-muted.css");
+    });
 }
 
 app.UseHttpsRedirection();
