@@ -285,10 +285,7 @@ public class AuthManager : IAuthManager
     {
         var validationMessages = new List<string>();
         
-        if (string.IsNullOrEmpty(userId))
-        {
-            validationMessages.Add("User id must be not be null or empty");
-        }
+        if (string.IsNullOrEmpty(userId)) throw new ArgumentException("Must not be null or empty", nameof(emailToken));
 
         if (validationMessages.Any())
             return new EmailConfirmationResult.ValidationError
