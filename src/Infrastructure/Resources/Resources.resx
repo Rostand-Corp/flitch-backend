@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="UserDoesntExist" xml:space="preserve">
+        <value>The user doesn't exist</value>
+    </data>
+    <data name="UserNameTaken" xml:space="preserve">
+        <value>The user with such username already exists</value>
+    </data>
+    <data name="EmailTaken" xml:space="preserve">
+        <value>The user with such e-mail already exists</value>
+    </data>
+    <data name="EmailConfirmationSubject" xml:space="preserve">
+        <value>e-Mail confirmation : Flitch</value>
+    </data>
+    <data name="EmailConfirmationMessage" xml:space="preserve">
+        <value>Please confirm your email: {0}</value>
+    </data>
+    <data name="SpecifyUserName" xml:space="preserve">
+        <value>The username must be specified</value>
+    </data>
+    <data name="SpecifyEmail" xml:space="preserve">
+        <value>The e-mail must be specified</value>
+    </data>
+    <data name="SpecifyPassword" xml:space="preserve">
+        <value>The password must be specified</value>
+    </data>
+    <data name="PasswordInvalid" xml:space="preserve">
+        <value>The specified passwordi is invalid</value>
+    </data>
+    <data name="SpecifyOldPassword" xml:space="preserve">
+        <value>Old password must be specified</value>
+    </data>
+    <data name="SpecifyNewPassword" xml:space="preserve">
+        <value>New password must be specified</value>
+    </data>
+    <data name="PasswordChangedSuccess" xml:space="preserve">
+        <value>Password has been successfully changed</value>
+    </data>
+    <data name="EmailWasNotConfirmed" xml:space="preserve">
+        <value>e-mail was not confirmed by the user</value>
+    </data>
+    <data name="EmailPasswordResetSubject" xml:space="preserve">
+        <value>Password reset : Flitch</value>
+    </data>
+    <data name="EmailPasswordResetMessage" xml:space="preserve">
+        <value>Follow this link to reset your password: {0}</value>
+    </data>
+    <data name="EmailPasswordResetMessageSent" xml:space="preserve">
+        <value>Password reset email has been queued. If you cannot see an email then consider requesting new message</value>
+    </data>
+    <data name="SpecifyResetToken" xml:space="preserve">
+        <value>Reset token must be specified</value>
+    </data>
+    <data name="PasswordResetSuccess" xml:space="preserve">
+        <value>Password has been successfully reset</value>
+    </data>
+    <data name="SpecifyEmailConfirmationToken" xml:space="preserve">
+        <value>The confirmation token must be specified</value>
+    </data>
+    <data name="EmailAlreadyConfirmed" xml:space="preserve">
+        <value>The e-mail is already confirmed</value>
+    </data>
+    <data name="EmailConfirmationSuccess" xml:space="preserve">
+        <value>The e-mail has been successfully confirmed</value>
+    </data>
+    <data name="EmailConfirmationResendSuccess" xml:space="preserve">
+        <value>Confirmation e-mail has been resent</value>
+    </data>
+</root>

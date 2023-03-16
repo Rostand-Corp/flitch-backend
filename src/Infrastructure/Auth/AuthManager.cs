@@ -13,7 +13,10 @@ public class AuthManager : IAuthManager
     private readonly IEmailSender _emailSender;
     private readonly ILogger<AuthManager> _logger;
 
-    public AuthManager(UserManager<IdentityUser> userManager, IEmailSender emailSender, ILogger<AuthManager> logger)
+    public AuthManager(
+        UserManager<IdentityUser> userManager,
+        IEmailSender emailSender,
+        ILogger<AuthManager> logger)
     {
         _userManager = userManager;
         _emailSender = emailSender;
@@ -28,7 +31,7 @@ public class AuthManager : IAuthManager
             _logger.LogInformation("Could not create the user because the user with such nickname already exists");
             return new RegistrationResult.UserNameTaken
             {
-                ErrorMessage = "User already exists"
+                ErrorMessage = Resources.UserNameTaken
             };
         }
 
@@ -38,7 +41,7 @@ public class AuthManager : IAuthManager
             _logger.LogInformation("Could not create the user because the user with such email already exists");
             return new RegistrationResult.EmailTaken
             {
-                ErrorMessage = "User already exists"
+                ErrorMessage = Resources.EmailTaken
             };
         }
         
@@ -84,8 +87,8 @@ public class AuthManager : IAuthManager
         var emailTokenEncoded = HttpUtility.UrlEncode(emailToken);
         await _emailSender.SendEmailAsync(
             userEmail,
-            "e-Mail confirmation : Flitch",
-            $"Please confirm your email: {emailTokenEncoded}");
+            Resources.EmailConfirmationSubject,
+            string.Format(Resources.EmailConfirmationMessage, emailTokenEncoded));
         
         _logger.LogInformation(
             "Confirmation e-mail has been queued to {UserName} ({Email})",
@@ -110,9 +113,9 @@ public class AuthManager : IAuthManager
     {
         var validationMessages = new List<string>();
 
-        if (string.IsNullOrEmpty(username)) validationMessages.Add("Username must be specified");
+        if (string.IsNullOrEmpty(username)) validationMessages.Add(Resources.SpecifyUserName);
 
-        if (string.IsNullOrEmpty(password)) validationMessages.Add("Password must be specified");
+        if (string.IsNullOrEmpty(password)) validationMessages.Add(Resources.SpecifyPassword);
 
         if (validationMessages.Any())
             return new LoginResult.ValidationError
@@ -127,7 +130,7 @@ public class AuthManager : IAuthManager
             _logger.LogInformation("Could not create the user because the user with such nickname does not exist");
             return new LoginResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
         }
 
@@ -139,7 +142,7 @@ public class AuthManager : IAuthManager
                 user.Email);
             return new LoginResult.InvalidPassword
             {
-                ErrorMessage = "Provided password is invalid"
+                ErrorMessage = Resources.PasswordInvalid
             };
         }
 
@@ -156,8 +159,8 @@ public class AuthManager : IAuthManager
         var validationMessages = new List<string>();
 
         if (string.IsNullOrEmpty(userId)) throw new ArgumentException("Must not be null or empty", nameof(userId)); 
-        if (string.IsNullOrEmpty(oldPassword)) validationMessages.Add("Old password must be specified");
-        if (string.IsNullOrEmpty(newPassword)) validationMessages.Add("New password must be specified");
+        if (string.IsNullOrEmpty(oldPassword)) validationMessages.Add(Resources.SpecifyOldPassword);
+        if (string.IsNullOrEmpty(newPassword)) validationMessages.Add(Resources.SpecifyNewPassword);
 
         if (validationMessages.Any())
         {
@@ -172,7 +175,7 @@ public class AuthManager : IAuthManager
         if (user is null)
             return new ResetKnownPasswordResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
 
         var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
@@ -185,7 +188,7 @@ public class AuthManager : IAuthManager
 
         return new ResetKnownPasswordResult.Success
         {
-            Message = "Password has been successfully changed"
+            Message = Resources.PasswordChangedSuccess
         };
     }
 
@@ -194,7 +197,7 @@ public class AuthManager : IAuthManager
         if (string.IsNullOrEmpty(email))
             return new SendForgotPasswordResetEmailResult.ValidationError
             {
-                ErrorMessages = new List<string> {"e-mail must not be null or empty"}
+                ErrorMessages = new List<string> {Resources.SpecifyEmail}
             };
 
         var user = await _userManager.FindByEmailAsync(email);
@@ -202,13 +205,13 @@ public class AuthManager : IAuthManager
         if (user is null)
             return new SendForgotPasswordResetEmailResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
 
         if (!user.EmailConfirmed)
             return new SendForgotPasswordResetEmailResult.EmailNotConfirmed
             {
-                ErrorMessage = "e-mail was not confirmed by the user"
+                ErrorMessage = Resources.EmailWasNotConfirmed
             };
 
         var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -216,8 +219,8 @@ public class AuthManager : IAuthManager
         
         await _emailSender.SendEmailAsync(
             email,
-            "Password reset : Flitch",
-            $"Follow this link to reset your password: {resetTokenEncoded}");
+            Resources.EmailPasswordResetSubject,
+            string.Format(Resources.EmailPasswordResetMessage, resetTokenEncoded));
         
         _logger.LogInformation(
             "Password reset e-mail has been queued to {UserName} ({Email})",
@@ -226,8 +229,7 @@ public class AuthManager : IAuthManager
 
         return new SendForgotPasswordResetEmailResult.Success
         {
-            Message =
-                "Password reset email has been queued. If you cannot see an email then consider requesting new message"
+            Message = Resources.EmailPasswordResetMessageSent
         };
     }
 
@@ -236,9 +238,9 @@ public class AuthManager : IAuthManager
     {
         var validationMessages = new List<string>();
 
-        if (string.IsNullOrEmpty(email)) validationMessages.Add("e-mail must be specified");
-        if (string.IsNullOrEmpty(token)) validationMessages.Add("Token must be specified");
-        if (string.IsNullOrEmpty(newPassword)) validationMessages.Add("New password must be specified");
+        if (string.IsNullOrEmpty(email)) validationMessages.Add(Resources.SpecifyEmail);
+        if (string.IsNullOrEmpty(token)) validationMessages.Add(Resources.SpecifyResetToken);
+        if (string.IsNullOrEmpty(newPassword)) validationMessages.Add(Resources.SpecifyNewPassword);
 
         if (validationMessages.Any())
         {
@@ -253,13 +255,13 @@ public class AuthManager : IAuthManager
         if (user is null)
             return new ResetForgotPasswordResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
 
         if (!user.EmailConfirmed)
             return new ResetForgotPasswordResult.EmailNotConfirmed
             {
-                ErrorMessage = "e-mail was not confirmed by the user"
+                ErrorMessage = Resources.EmailWasNotConfirmed
             };
 
         var resetTokenDecoded = HttpUtility.UrlDecode(token);
@@ -277,7 +279,7 @@ public class AuthManager : IAuthManager
 
         return new ResetForgotPasswordResult.Success
         {
-            Message = "Password has been successfully reset"
+            Message = Resources.PasswordResetSuccess
         };
     }
 
@@ -286,7 +288,8 @@ public class AuthManager : IAuthManager
         var validationMessages = new List<string>();
         
         if (string.IsNullOrEmpty(userId)) throw new ArgumentException("Must not be null or empty", nameof(emailToken));
-
+        if (string.IsNullOrEmpty(emailToken)) validationMessages.Add(Resources.SpecifyEmailConfirmationToken);
+        
         if (validationMessages.Any())
             return new EmailConfirmationResult.ValidationError
             {
@@ -298,7 +301,7 @@ public class AuthManager : IAuthManager
         {
             return new EmailConfirmationResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
         }
 
@@ -307,7 +310,7 @@ public class AuthManager : IAuthManager
             _logger.LogInformation("e-mail is already confirmed for {UserName}", user.UserName);
             return new EmailConfirmationResult.EmailAlreadyConfirmed
             {
-                ErrorMessage = "Email is already confirmed"
+                ErrorMessage = Resources.EmailAlreadyConfirmed
             };
         }
 
@@ -323,7 +326,7 @@ public class AuthManager : IAuthManager
 
         return new EmailConfirmationResult.Success
         {
-            Message = "Email has been successfully confirmed"
+            Message = Resources.EmailConfirmationSuccess
         };
     }
 
@@ -333,7 +336,7 @@ public class AuthManager : IAuthManager
         if (user is null)
             return new ResendEmailConfirmationResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
 
         return await ResendEmailConfirmation(user);
@@ -347,7 +350,7 @@ public class AuthManager : IAuthManager
         if (user is null)
             return new ResendEmailConfirmationResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
         return await ResendEmailConfirmation(user);
     }
@@ -359,7 +362,7 @@ public class AuthManager : IAuthManager
             _logger.LogInformation("e-mail couldn't be resent because specified user does not exist");
             return new ResendEmailConfirmationResult.UserDoesntExist
             {
-                ErrorMessage = "User doesn't exist"
+                ErrorMessage = Resources.UserDoesntExist
             };
         }
         
@@ -368,7 +371,7 @@ public class AuthManager : IAuthManager
             _logger.LogInformation("e-mail is already confirmed for {UserName}", user.UserName);
             return new ResendEmailConfirmationResult.EmailAlreadyConfirmed
             {
-                ErrorMessage = "e-mail is already confirmed"
+                ErrorMessage = Resources.EmailAlreadyConfirmed
             };
         }
 
@@ -376,7 +379,7 @@ public class AuthManager : IAuthManager
         await SendConfirmationEmail(user);
         return new ResendEmailConfirmationResult.Success
         {
-            Message = "Confirmation e-mail has been resent"
+            Message = Resources.EmailConfirmationResendSuccess
         };
     }
 
