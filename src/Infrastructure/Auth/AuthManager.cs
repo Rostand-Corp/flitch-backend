@@ -155,7 +155,7 @@ public class AuthManager : IAuthManager
     {
         var validationMessages = new List<string>();
 
-        if (string.IsNullOrEmpty(userId)) validationMessages.Add("UserId must be specified");
+        if (string.IsNullOrEmpty(userId)) throw new ArgumentException("Must not be null or empty", nameof(userId)); 
         if (string.IsNullOrEmpty(oldPassword)) validationMessages.Add("Old password must be specified");
         if (string.IsNullOrEmpty(newPassword)) validationMessages.Add("New password must be specified");
 
