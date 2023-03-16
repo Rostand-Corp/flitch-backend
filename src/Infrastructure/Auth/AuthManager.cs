@@ -60,7 +60,9 @@ public class AuthManager : IAuthManager
         }
 
         await SendConfirmationEmail(user, email);
-        _logger.LogInformation("User {UserName} has been successfully created", username);
+        _logger.LogInformation(
+            "User {UserName} has been successfully created",
+            username);
         return new RegistrationResult.Success
         {
             User = user
@@ -71,17 +73,24 @@ public class AuthManager : IAuthManager
     {
         if (user is null)
         {
-            _logger.LogWarning("Confirmation e-mail could not be sent because specified user value is null (Probably does not exist");
+            _logger.LogWarning(
+                "Confirmation e-mail could not be sent because specified user value is null (Probably does not exist");
             throw new ArgumentNullException(nameof(user));
         }
         
         var userEmail = email ?? user.Email;
 
-        var emailToken = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
-        await _emailSender.SendEmailAsync(userEmail, "e-Mail confirmation : Flitch",
-            $"Please confirm your email: {emailToken}");
-        _logger.LogInformation("Confirmation e-mail has been queued to {UserName} ({Email})",
-            user.Email, user.UserName);
+        var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var emailTokenEncoded = HttpUtility.UrlEncode(emailToken);
+        await _emailSender.SendEmailAsync(
+            userEmail,
+            "e-Mail confirmation : Flitch",
+            $"Please confirm your email: {emailTokenEncoded}");
+        
+        _logger.LogInformation(
+            "Confirmation e-mail has been queued to {UserName} ({Email})",
+            user.Email,
+            user.UserName);
     }
     
     private async Task SendConfirmationEmail(string userId, string? email = null)
@@ -124,8 +133,10 @@ public class AuthManager : IAuthManager
 
         if (!await _userManager.CheckPasswordAsync(user, password))
         {
-            _logger.LogInformation("The password supplied could not be verified for {UserName} ({Email})",
-                user.UserName, user.Email);
+            _logger.LogInformation(
+                "The password supplied could not be verified for {UserName} ({Email})",
+                user.UserName,
+                user.Email);
             return new LoginResult.InvalidPassword
             {
                 ErrorMessage = "Provided password is invalid"
@@ -200,11 +211,18 @@ public class AuthManager : IAuthManager
                 ErrorMessage = "e-mail was not confirmed by the user"
             };
 
-        var resetToken = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
-        await _emailSender.SendEmailAsync(email, "Password reset : Flitch",
-            $"Follow this link to reset your password: {resetToken}");
-        _logger.LogInformation("Password reset e-mail has been queued to {UserName} ({Email})",
-            user.UserName, user.Email);
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var resetTokenEncoded = HttpUtility.UrlEncode(resetToken);
+        
+        await _emailSender.SendEmailAsync(
+            email,
+            "Password reset : Flitch",
+            $"Follow this link to reset your password: {resetTokenEncoded}");
+        
+        _logger.LogInformation(
+            "Password reset e-mail has been queued to {UserName} ({Email})",
+            user.UserName,
+            user.Email);
 
         return new SendForgotPasswordResetEmailResult.Success
         {
@@ -244,15 +262,18 @@ public class AuthManager : IAuthManager
                 ErrorMessage = "e-mail was not confirmed by the user"
             };
 
-        var decodedToken = HttpUtility.UrlDecode(token);
-        var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
+        var resetTokenDecoded = HttpUtility.UrlDecode(token);
+        var result = await _userManager.ResetPasswordAsync(user, resetTokenDecoded, newPassword);
 
         if (!result.Succeeded)
             return new ResetForgotPasswordResult.ValidationError
             {
                 ErrorMessages = result.Errors.Select(error => error.Description)
             };
-        _logger.LogInformation("Password has been reset for {UserName} ({Email})", user.UserName, user.Email);
+        _logger.LogInformation(
+            "Password has been reset for {UserName} ({Email})",
+            user.UserName,
+            user.Email);
 
         return new ResetForgotPasswordResult.Success
         {
