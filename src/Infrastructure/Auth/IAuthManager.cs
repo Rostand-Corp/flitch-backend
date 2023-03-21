@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Domain.Shared;
 using Infrastructure.Auth.Results;
 
 namespace Infrastructure.Auth;
@@ -20,6 +21,8 @@ public interface IAuthManager
     public Task<ResendEmailConfirmationResult> ResendEmailConfirmationById(string userId);
 
     public Task<ResendEmailConfirmationResult> ResendEmailConfirmationByEmail(string email);
+
+    public Task<Result> RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem);
 
     public Task<IEnumerable<Claim>> RetrieveClaims(string userId);
 
