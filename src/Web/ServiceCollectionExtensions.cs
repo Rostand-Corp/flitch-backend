@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddFlitchAuth(this IServiceCollection services, IConfiguration config)
     {
-        services.AddIdentity<IdentityUser, IdentityRole>()
+        services.AddIdentity<SystemUser, IdentityRole>()
             .AddEntityFrameworkStores<FlitchDbContext>()
             .AddDefaultTokenProviders();
 

@@ -10,7 +10,7 @@ public abstract class RegistrationResult
 
     public class Success : RegistrationResult
     {
-        public IdentityUser User { get; init; }
+        public SystemUser User { get; init; }
     }
 
     public class UserNameTaken : RegistrationResult

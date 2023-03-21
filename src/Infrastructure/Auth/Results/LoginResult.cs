@@ -10,7 +10,7 @@ public abstract class LoginResult
 
     public class Success : LoginResult
     {
-        public IdentityUser User { get; init; }
+        public SystemUser User { get; init; }
     }
 
     public class UserDoesntExist : LoginResult
