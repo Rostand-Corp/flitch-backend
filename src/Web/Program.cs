@@ -1,3 +1,5 @@
+using Application.Services.Users;
+using Domain.Services;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Web;
@@ -12,6 +14,9 @@ builder.Services.AddDbContext<FlitchDbContext>(c =>
 
 builder.Services.AddFlitchAuth(builder.Configuration);
 builder.Services.AddFlitchEmailing(builder.Configuration);
+
+builder.Services.AddTransient<IUserService, UserService>(); // TODO: Move to AddMessenger()
+builder.Services.AddTransient<IUserAppService, UserAppService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
