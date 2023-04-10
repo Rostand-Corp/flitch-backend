@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,11 +20,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property<string>(u => u.Status)
             .IsRequired(false)
             .HasMaxLength(50);
-        
+
         builder.HasOne<Color>(u => u.Color)
             .WithMany()
             .HasForeignKey(u => u.ColorId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder
+            .HasMany<Chat>(u=>u.Chats)
+            .WithMany(c => c.Users)
+            .UsingEntity<ChatUser>(
+                j => j.Property(e => e.Joined).HasDefaultValueSql("CURRENT_TIMESTAMP"));
     }
 }

@@ -43,7 +43,7 @@ namespace Web.Controllers
 
             return result switch
             {
-                LoginResult.Success res => Ok(await GenerateToken(res.User.Id)), //.Let(t => (t.Token, t.ExpiryDate)
+                LoginResult.Success res => Ok(await GenerateToken(res.User.Id.ToString())), //.Let(t => (t.Token, t.ExpiryDate)
                 LoginResult.InvalidPassword res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.InvalidPass"),
@@ -72,12 +72,12 @@ namespace Web.Controllers
         [ProducesErrorResponseType(typeof(ProblemDetails))]
         public async Task<IActionResult> Register([FromBody] RegisterModel request)
         {
-            var result = await _authManager.RegisterUser(request.Username!, request.Email!, request.Password!);
+            var result = await _authManager.RegisterUser(request.Username!, request.FullName!,request.Email!, request.Password!);
 
             return result switch
             {
                 RegistrationResult.Success res => Ok(
-                    await GenerateToken(res.User.Id)), //.Let(t => (t.Token, t.ExpiryDate)
+                    await GenerateToken(res.User.Id.ToString())), //.Let(t => (t.Token, t.ExpiryDate)
                 RegistrationResult.UserNameTaken res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NameTaken"),
@@ -308,6 +308,9 @@ namespace Web.Controllers
         [Required] // Todo: Try moving it to the natural modifier
         [MinLength(6), MaxLength(16)]
         public string? Username { get; set; }
+        [Required]
+        [MinLength(1), MaxLength(128)]
+        public string? FullName { get; set; }
         [Required]
         [EmailAddress]
         public string? Email { get; set; }
