@@ -1,20 +1,24 @@
+using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Web;
+using Domain.Entities;
+using Domain.Exceptions;
 using Infrastructure.Auth.Results;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Auth;
 
 public class AuthManager : IAuthManager
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<SystemUser> _userManager;
     private readonly IEmailSender _emailSender;
     private readonly ILogger<AuthManager> _logger;
 
     public AuthManager(
-        UserManager<IdentityUser> userManager,
+        UserManager<SystemUser> userManager,
         IEmailSender emailSender,
         ILogger<AuthManager> logger)
     {
@@ -23,7 +27,7 @@ public class AuthManager : IAuthManager
         _logger = logger;
     }
 
-    public async Task<RegistrationResult> RegisterUser(string username, string email, string password)
+    public async Task<RegistrationResult> RegisterUser(string username, string fullName, string email, string password)
     {
         var userNameTaken = await _userManager.FindByNameAsync(username) is not null;
         if (userNameTaken)
@@ -45,11 +49,14 @@ public class AuthManager : IAuthManager
             };
         }
         
-        IdentityUser user = new()
+        SystemUser user = new()
         {
             Email = email,
             SecurityStamp = Guid.NewGuid().ToString(),
-            UserName = username
+            UserName = username,
+            FullName = fullName
+            // MessengerUser = new User {DisplayName = username} // Once there are more than 1 subsystem,
+                                                              // introduce initialization method
         };
 
         var result = await _userManager.CreateAsync(user, password);
@@ -72,7 +79,7 @@ public class AuthManager : IAuthManager
         };
     }
 
-    private async Task SendConfirmationEmail(IdentityUser user, string? email = null)
+    private async Task SendConfirmationEmail(SystemUser user, string? email = null)
     {
         if (user is null)
         {
@@ -355,7 +362,7 @@ public class AuthManager : IAuthManager
         return await ResendEmailConfirmation(user);
     }
 
-    private async Task<ResendEmailConfirmationResult> ResendEmailConfirmation(IdentityUser user)
+    private async Task<ResendEmailConfirmationResult> ResendEmailConfirmation(SystemUser user)
     {
         if (user is null)
         {
@@ -383,16 +390,39 @@ public class AuthManager : IAuthManager
         };
     }
 
+    public async Task RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem)
+    {
+        if (subsystem == Subsystems.Messenger)
+        {
+            var user = await _userManager.Users
+                .Include(user => user.MessengerUser)
+                .FirstOrDefaultAsync(user => user.Id.ToString() == identityId);
+
+            if (user is null) throw new FlitchException("Auth.NoUser", Resources.UserDoesntExist);
+
+            if (user.MessengerUserId is not null)
+                throw new FlitchException("Messenger.User.AlreadyExists",
+                    "You are already registered"); // TODO: Must not know exactly about messenger domain
+
+            user.MessengerUserId = Guid.Parse(subsystemIdentityId);
+            await _userManager.UpdateAsync(user);
+        }
+
+        else
+            throw new NotImplementedException();
+    }
+
     public async Task<IEnumerable<Claim>> RetrieveClaims(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
         
         var claims = new List<Claim>()
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName!),
-            new Claim(ClaimTypes.Email, user.Email!)
+            new Claim(ClaimTypes.Email, user.Email!),
         };
+        AddSubsystemsIdentityClaims(user, claims);
 
         var userRoles = await _userManager.GetRolesAsync(user);
         foreach (var role in userRoles)
@@ -401,5 +431,12 @@ public class AuthManager : IAuthManager
         }
 
         return claims;
+
+        void AddSubsystemsIdentityClaims(SystemUser user, List<Claim> claims)
+        {
+            // TODO: Refactor to add all the claims
+            if (user.MessengerUserId is not null)
+                claims.Add(new Claim("msngrUserId", user.MessengerUserId.ToString()));
+        }
     }
 }

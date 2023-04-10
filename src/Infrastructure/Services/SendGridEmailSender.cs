@@ -30,7 +30,7 @@ public class SendGridEmailSender : IEmailSender
         var client = new SendGridClient(apiKey);
         var msg = new SendGridMessage()
         {
-            From = new EmailAddress("flitchapp@gmail.com", "Flitch"), // Todo: To config
+            From = new EmailAddress("flitchapp@gmail.com", "Flitch"), // todo: config
             Subject = subject,
             PlainTextContent = message,
             HtmlContent = message
@@ -41,11 +41,11 @@ public class SendGridEmailSender : IEmailSender
 
         if (response.IsSuccessStatusCode)
         {
-            _logger.LogInformation($"Email to {email} queued successfully!"); // Optimize, make it compile time
+            _logger.LogInformation($"Email to {email} queued successfully!");
         }
         else
         {
-            _logger.LogError($"Email to {email} has failed!"); // Same here.
+            _logger.LogError($"Email to {email} has failed!");
         }
 
     }

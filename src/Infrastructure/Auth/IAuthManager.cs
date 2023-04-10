@@ -5,7 +5,7 @@ namespace Infrastructure.Auth;
 
 public interface IAuthManager
 {
-    public Task<RegistrationResult> RegisterUser(string username, string email, string password);
+    public Task<RegistrationResult> RegisterUser(string username, string fullName, string email, string password);
 
     public Task<LoginResult> Login(string username, string password);
 
@@ -20,6 +20,8 @@ public interface IAuthManager
     public Task<ResendEmailConfirmationResult> ResendEmailConfirmationById(string userId);
 
     public Task<ResendEmailConfirmationResult> ResendEmailConfirmationByEmail(string email);
+
+    public Task RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem);
 
     public Task<IEnumerable<Claim>> RetrieveClaims(string userId);
 
