@@ -1,12 +1,19 @@
 using System.Reflection;
 using System.Text;
+using Application.Chats.Mappings;
+using Domain.Validators;
+using FluentValidation;
 using Infrastructure.Auth;
 using Infrastructure.Data;
 using Infrastructure.Services;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Web;
 
@@ -14,7 +21,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddFlitchAuth(this IServiceCollection services, IConfiguration config)
     {
-        services.AddIdentity<SystemUser, IdentityRole>()
+        services.AddIdentity<SystemUser, IdentityRole<Guid>>()
             .AddEntityFrameworkStores<FlitchDbContext>()
             .AddDefaultTokenProviders();
 
@@ -49,6 +56,10 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"]!))
                 };
             });
+        services.AddAuthorization(o =>
+        {
+            o.AddPolicy("MessengerId", policy => policy.RequireClaim("msngrUserId"));
+        });
         services.AddTransient<IAuthManager, AuthManager>();
         return services;
     }
@@ -91,6 +102,25 @@ public static class ServiceCollectionExtensions
                 }
             });
         });
+        return services;
+    }
+
+    public static IServiceCollection AddMappings(this IServiceCollection services)
+    {
+        var config = TypeAdapterConfig.GlobalSettings;
+        config.Scan(Assembly.GetExecutingAssembly(),
+            typeof(ChatMappingConfig).Assembly); // change later to some marker mayve
+
+        services.AddSingleton(config);
+        services.AddScoped<IMapper, ServiceMapper>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddValidation(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<UserValidator>(ServiceLifetime.Transient); // change to assembly name
+
         return services;
     }
 }

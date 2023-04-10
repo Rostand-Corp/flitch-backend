@@ -1,18 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Application.Services.Users;
-using Application.Services.Users.ViewModels;
+using Application.Services.Users.Commands;
+using Application.Users.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Messenger.ViewModels;
 
 namespace Web.Controllers.Messenger
 {
-    [Route("api/messenger")]
+    [Route("api/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -24,39 +21,61 @@ namespace Web.Controllers.Messenger
         }
 
         [Authorize]
-        [Route("users")]
         [HttpPost]
         public async Task<IActionResult> CreateUser(CreateUserRequest request)
         {
-            var command = new CreateUserCommand(request.DisplayName, GetFlitchIdentity());
+            var command = new CreateUserCommand(request.DisplayName);
             var response = await _userAppService.CreateUser(command);
 
-            if (response.IsSuccess) return Ok(response.Value);
+            return Ok(response);
+        }
 
-            return Problem(detail: response.Error.Message, type: response.Error.Code); // TODO: add status code
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById([Required] [FromRoute] string id)
+        {
+            var response = await _userAppService.GetUserById(id);
+            
+            return Ok(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsers([Range(1, int.MaxValue)] [FromQuery] int amount)
+        {
+            var command = new GetUsersCommand(amount);
+            var response = await _userAppService.GetUsers(command);
+
+            return Ok(response);
         }
         
-        [Authorize]
-        [Route("users/self/status")] // hmm
-        [HttpPost]
-        public async Task<IActionResult> ChangeUserStatus(ChangeUserStatusRequest request)
+        [Authorize(Policy = "MessengerId")]
+        [Route("self")]
+        [HttpPut]
+        public async Task<IActionResult> UpdateUser(UpdateUserRequest request)
         {
-            var command = new ChangeStatusCommand(GetMessengerIdentity(), request.Status);
-            var response = await _userAppService.ChangeUserStatus(command);
+            var command = new UpdateSelfCommand(request.DisplayName, request.Status);
+            var response = await _userAppService.UpdateUser(command);
 
-            if (response.IsSuccess) return Ok(response.Value);
-
-            return Problem(detail: response.Error.Message, type: response.Error.Code); // TODO: add status code
+            return Ok(response);
         }
+        
+        [Route("{id}")]
+        [HttpDelete]
+        public async Task<IActionResult> DeleteUser([FromRoute] string id)
+        {
+            var response = await _userAppService.DeleteUser(id);
 
-        private string GetFlitchIdentity()
+            return Ok(response);
+        }
+        
+
+        /*private string GetFlitchIdentity()
         {
             return User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        }
+        } // Was moved to the CurrentUserService */
 
-        private string GetMessengerIdentity()
+        /*private string GetMessengerIdentity()
         {
             return User.Claims.FirstOrDefault(c => c.Type == "msngrUserId")?.Value;
-        }
+        } // Was moved to the CurrentUserService */
     }
 }

@@ -8,4 +8,9 @@ public class User
     
     public Guid? ColorId { get; set; }
     public Color? Color { get; set; }
+
+    public List<Chat> Chats { get; } = new();
+    public List<ChatUser> ChatUsers { get; } = new();
+
+    // public Guid? FlitchIdentity { get; set; }
 }

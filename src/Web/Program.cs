@@ -1,5 +1,8 @@
+using Application.Chats.Services;
+using Application.Services;
 using Application.Services.Users;
-using Domain.Services;
+using Application.Users;
+using Application.Users.Services;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Web;
@@ -15,8 +18,11 @@ builder.Services.AddDbContext<FlitchDbContext>(c =>
 builder.Services.AddFlitchAuth(builder.Configuration);
 builder.Services.AddFlitchEmailing(builder.Configuration);
 
-builder.Services.AddTransient<IUserService, UserService>(); // TODO: Move to AddMessenger()
+builder.Services.AddTransient<ICurrentUserService, CurrentUserService>();
 builder.Services.AddTransient<IUserAppService, UserAppService>();
+builder.Services.AddTransient<IChatService, ChatService>();
+builder.Services.AddMappings();
+builder.Services.AddValidation();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

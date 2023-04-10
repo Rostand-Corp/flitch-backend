@@ -1,7 +1,8 @@
+using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Web;
 using Domain.Entities;
-using Domain.Shared;
+using Domain.Exceptions;
 using Infrastructure.Auth.Results;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +27,7 @@ public class AuthManager : IAuthManager
         _logger = logger;
     }
 
-    public async Task<RegistrationResult> RegisterUser(string username, string email, string password)
+    public async Task<RegistrationResult> RegisterUser(string username, string fullName, string email, string password)
     {
         var userNameTaken = await _userManager.FindByNameAsync(username) is not null;
         if (userNameTaken)
@@ -53,6 +54,7 @@ public class AuthManager : IAuthManager
             Email = email,
             SecurityStamp = Guid.NewGuid().ToString(),
             UserName = username,
+            FullName = fullName
             // MessengerUser = new User {DisplayName = username} // Once there are more than 1 subsystem,
                                                               // introduce initialization method
         };
@@ -388,26 +390,26 @@ public class AuthManager : IAuthManager
         };
     }
 
-    public async Task<Result> RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem)
+    public async Task RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem)
     {
         if (subsystem == Subsystems.Messenger)
         {
             var user = await _userManager.Users
-                .Include(user=>user.MessengerUser)
-                .FirstOrDefaultAsync(user=>user.Id == identityId);
-            
-            if (user is null) return new Error("Auth.NoUser", Resources.UserDoesntExist);
+                .Include(user => user.MessengerUser)
+                .FirstOrDefaultAsync(user => user.Id.ToString() == identityId);
 
-            if (user.MessengerUser is not null) return new Error("Messenger.User.AlreadyExists", 
-                "You are already registered"); // TODO: Must not know exactly about messenger domain
+            if (user is null) throw new FlitchException("Auth.NoUser", Resources.UserDoesntExist);
+
+            if (user.MessengerUserId is not null)
+                throw new FlitchException("Messenger.User.AlreadyExists",
+                    "You are already registered"); // TODO: Must not know exactly about messenger domain
 
             user.MessengerUserId = Guid.Parse(subsystemIdentityId);
             await _userManager.UpdateAsync(user);
-
-            return Result.Success();
         }
-        
-        throw new NotImplementedException();
+
+        else
+            throw new NotImplementedException();
     }
 
     public async Task<IEnumerable<Claim>> RetrieveClaims(string userId)
@@ -416,11 +418,11 @@ public class AuthManager : IAuthManager
         
         var claims = new List<Claim>()
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName!),
             new Claim(ClaimTypes.Email, user.Email!),
-            new Claim("msngrUserId", user.MessengerUserId.ToString() ?? string.Empty),
         };
+        AddSubsystemsIdentityClaims(user, claims);
 
         var userRoles = await _userManager.GetRolesAsync(user);
         foreach (var role in userRoles)
@@ -429,5 +431,12 @@ public class AuthManager : IAuthManager
         }
 
         return claims;
+
+        void AddSubsystemsIdentityClaims(SystemUser user, List<Claim> claims)
+        {
+            // TODO: Refactor to add all the claims
+            if (user.MessengerUserId is not null)
+                claims.Add(new Claim("msngrUserId", user.MessengerUserId.ToString()));
+        }
     }
 }
