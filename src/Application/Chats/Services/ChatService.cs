@@ -1,3 +1,4 @@
+using System.Net;
 using Application.Chats.Commands;
 using Application.Chats.Responses;
 using Application.Services;
@@ -26,8 +27,7 @@ public class ChatService : IChatService
         _currentUser = currentUserService;
         _messageValidator = messageValidator;
     }
-
-
+    
     public async Task<ChatFullResponse> CreatePrivateChat(CreatePrivateChatCommand command) // need complete error handling support
     {
         if (command is null)
@@ -42,11 +42,16 @@ public class ChatService : IChatService
 
         if (command.UserId == _currentUser.MessengerUserId)
         {
-            throw new ArgumentException("You cannot create a private chat with yourself.");
+            throw new ValidationException("Chat", new Dictionary<string, string[]>() // is this even validation exception?
+            {
+                ["Participants"] = new []{"You cannot create a group chat with yourself."}
+            });
         }
         
-        var user1 = await _db.Users.FindAsync(_currentUser.MessengerUserId) ?? throw new UserNotFoundException(); // Change exceptions later
-        var user2 = await _db.Users.FindAsync(command.UserId) ?? throw new UserNotFoundException();
+        var user1 = await _db.Users.FindAsync(_currentUser.MessengerUserId) ??
+                    throw new NotFoundException("Chat.User.NotFound", "The creator user was not found.");
+        var user2 = await _db.Users.FindAsync(command.UserId) ??
+                    throw new NotFoundException("Chat.User.NotFound", "The invited user was not found.");
 
 
         var chatAlreadyExists = 
@@ -55,7 +60,7 @@ public class ChatService : IChatService
                 c.Users.Contains(user1) &&
                 c.Users.Contains(user2));
 
-        if (chatAlreadyExists) throw new Exception("chat already exists");
+        if (chatAlreadyExists) throw new AlreadyExistsException("Chat", "This chat already exists.");
 
         var chat = new Chat
         {
@@ -101,14 +106,14 @@ public class ChatService : IChatService
         }
 
         var creatorUser = await _db.Users.FindAsync(_currentUser.MessengerUserId) ??
-                          throw new NotFoundException("User...", "changelater");
+                          throw new NotFoundException("Chat.User.NotFound", "The creator user was not found");
         
         var users = await _db.Users.Where(u => command.UserIds.Contains(u.Id)).ToListAsync();
 
         var missingUsersGuids = command.UserIds.Except(users.Select(u => u.Id)).ToList();
         if (missingUsersGuids.Count > 1)
         {
-            throw new Exception(
+            throw new NotFoundException("Chat.Participants",
                 $"The following Guids were not found: {string.Join(", ", missingUsersGuids)}");
         }
 
@@ -118,7 +123,7 @@ public class ChatService : IChatService
             {
                 throw new ValidationException("Chat", new Dictionary<string, string[]>() // is this even validation exception?
                 {
-                    ["Participants"] = new []{"You cannot create a group chat with yourself"}
+                    ["Participants"] = new []{"You cannot create a group chat with yourself."}
                 });
             }
         }
@@ -201,7 +206,7 @@ public class ChatService : IChatService
 
         if (command.Amount <= 0)
         {
-            throw new FlitchException("Chat.Messages.Pagination", "The amount value must be greater than 0");
+            throw new FlitchException("Chat.Messages.Pagination", "The amount value must be greater than 0", HttpStatusCode.BadRequest);
         }
 
         var chat = await _db.Chats
