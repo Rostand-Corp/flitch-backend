@@ -31,12 +31,15 @@ namespace Web.Controllers
         /// <returns>A structure representing JWT and its expiry date for authenticated user</returns>
         /// <response code="200">Returns a JWT and its expiry date</response>
         /// <response code="401">Returns problem details if user does not exist</response>
-        /// <response code="401">Returns problem details if password is invalid</response>
+        /// <response code="401">Returns problem details if password is invalid</response>  
         /// <response code="400">Returns problem details if validation problem occurred</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [HttpPost]
         [Route("login")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(typeof(JwtResult), 200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
             var result = await _authManager.Login(request.Username!, request.Password!);
@@ -69,7 +72,10 @@ namespace Web.Controllers
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [HttpPost]
         [Route("register")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(typeof(JwtResult), 200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> Register([FromBody] RegisterModel request)
         {
             var result = await _authManager.RegisterUser(request.Username!, request.FullName!,request.Email!, request.Password!);
@@ -96,8 +102,8 @@ namespace Web.Controllers
         /// Confirms user's e-mail
         /// </summary>
         /// <param name="token"></param>
-        /// <returns>A message verifying successful confirmation</returns>
-        /// <response code="200">Returns a JWT and its expiry date</response>
+        /// <returns>Returns Ok</returns>
+        /// <response code="200">Returns Ok</response>
         /// <response code="401">Returns problem details if user does not exist</response>
         /// <response code="401">Returns problem details if e-mail is already confirmed</response>
         /// <response code="400">Returns problem details if validation problem occurred</response>
@@ -105,7 +111,10 @@ namespace Web.Controllers
         [Authorize]
         [HttpPost]
         [Route("confirm-email")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult>
             ConfirmEmail(
                 [Required] string token) // Well, I wonder if I can just fire and forget this. Need to resolve disposal problems then
@@ -115,7 +124,7 @@ namespace Web.Controllers
 
             return result switch
             {
-                EmailConfirmationResult.Success res => Ok(res.Message),
+                EmailConfirmationResult.Success res => Ok(),
                 EmailConfirmationResult.UserDoesntExist res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NoUser"),
@@ -132,8 +141,8 @@ namespace Web.Controllers
         /// <summary>
         /// Resends e-mail confirmation message to the user
         /// </summary>
-        /// <returns>A message verifying that e-mail has been resent</returns>
-        /// <response code="200">Returns a message verifying e-mail has been resent</response>
+        /// <returns>Returns Ok</returns>
+        /// <response code="200">Returns Ok</response>
         /// <response code="401">Returns problem details if user does not exist</response>
         /// <response code="401">Returns problem details if e-mail is already confirmed</response>
         /// <response code="400">Returns problem details if validation problem occurred</response>
@@ -141,7 +150,10 @@ namespace Web.Controllers
         [Authorize]
         [HttpGet]
         [Route("resend-confirmation")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> ResendEmailConfirmation()
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value; // Validate
@@ -149,7 +161,7 @@ namespace Web.Controllers
 
             return result switch
             {
-                ResendEmailConfirmationResult.Success res => Ok(res.Message),
+                ResendEmailConfirmationResult.Success res => Ok(),
                 ResendEmailConfirmationResult.UserDoesntExist res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NoUser"),
@@ -166,15 +178,18 @@ namespace Web.Controllers
         /// <summary>
         /// Resets user's password by using his current password
         /// </summary>
-        /// <returns>A message verifying that password has been reset successfully</returns>
-        /// <response code="200">Returns a message verifying that password has been reset successfully</response>
+        /// <returns>Returns Ok</returns>
+        /// <response code="200">Returns Ok</response>
         /// <response code="401">Returns problem details if user does not exist</response>
         /// <response code="400">Returns problem details if validation problem occurred</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [Authorize]
         [HttpPost]
         [Route("reset-password")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPassModel request)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
@@ -182,7 +197,7 @@ namespace Web.Controllers
 
             return result switch
             {
-                ResetKnownPasswordResult.Success res => Ok(res.Message),
+                ResetKnownPasswordResult.Success res => Ok(),
                 ResetKnownPasswordResult.UserDoesntExist res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NoUser"),
@@ -196,22 +211,25 @@ namespace Web.Controllers
         /// <summary>
         /// Sends forgot password e-mail to the user
         /// </summary>
-        /// <returns>A message verifying that e-mail has been sent successfully</returns>
-        /// <response code="200">Returns a message verifying that e-mail has been sent successfully</response>
+        /// <returns>Returns Ok</returns>
+        /// <response code="200">Returns Ok</response>
         /// <response code="401">Returns problem details if user does not exist</response>
         /// <response code="400">Returns problem details if validation problem occurred</response>
         /// <response code="400">Returns problem details if user's e-mail is not confirmed</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [HttpPost]
         [Route("forgot-password")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> SendForgotPasswordResetEmail([FromBody] ForgotPassModel request)
         {
             var result = await _authManager.SendForgotPasswordResetEmail(request.Email!);
 
             return result switch
             {
-                SendForgotPasswordResetEmailResult.Success res => Ok(res.Message),
+                SendForgotPasswordResetEmailResult.Success res => Ok(),
                 SendForgotPasswordResetEmailResult.UserDoesntExist res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NoUser"),
@@ -228,22 +246,25 @@ namespace Web.Controllers
         /// <summary>
         /// Resets user's password by using a reset token from e-mail
         /// </summary>
-        /// <returns>A message verifying password has been reset successfully</returns>
-        /// <response code="200">Returns a message verifying password has been reset successfully</response>
+        /// <returns>Returns Ok</returns>
+        /// <response code="200">Returns Ok</response>
         /// <response code="401">Returns problem details if user does not exist</response>
         /// <response code="400">Returns problem details if validation problem occurred</response>
         /// <response code="400">Returns problem details if user's e-mail is not confirmed</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [HttpPost]
         [Route("reset-forgot-password")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> ResetForgotPassword([FromBody] ResetForgotPassModel request)
         {
             var result = await _authManager.ResetForgotPassword(request.Email!, request.Token!, request.Password!);
 
             return result switch
             {
-                ResetForgotPasswordResult.Success res => Ok(res.Message),
+                ResetForgotPasswordResult.Success res => Ok(),
                 ResetForgotPasswordResult.UserDoesntExist res =>
                     Problem(res.ErrorMessage, statusCode: 401, title: "Authentication problem",
                         type: "Auth.NoUser"),
@@ -260,7 +281,10 @@ namespace Web.Controllers
         [Authorize]
         [HttpGet]
         [Route("test")]
-        [ProducesErrorResponseType(typeof(ProblemDetails))]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
         public IActionResult Test()
         {
             return Ok(
