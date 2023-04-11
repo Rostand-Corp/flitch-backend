@@ -10,6 +10,7 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
@@ -87,7 +88,19 @@ public static class ServiceCollectionExtensions
                 Description =
                     "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\""
             });
-            o.AddSecurityRequirement(new OpenApiSecurityRequirement
+            o.MapType<ProblemDetails>(() => new OpenApiSchema
+            {
+                Type = "object",
+                Properties =
+                {
+                    {"type", new OpenApiSchema {Type = "string"}},
+                    {"title", new OpenApiSchema {Type = "string"}},
+                    {"status", new OpenApiSchema {Type = "integer", Format = "int32"}},
+                    {"detail", new OpenApiSchema {Type = "string"}},
+                    {"traceId", new OpenApiSchema{Type = "string"}},
+                },
+            });
+                o.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
                     new OpenApiSecurityScheme
