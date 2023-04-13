@@ -4,11 +4,18 @@ using Application.Services.Users;
 using Application.Users;
 using Application.Users.Services;
 using Infrastructure.Data;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Web;
 using Web.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration
+    .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "src", "Web"))
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .Build();
 
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
@@ -32,15 +39,15 @@ builder.Services.AddSwagger();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseStaticFiles();
     app.UseSwagger();
     app.UseSwaggerUI(o =>
     {
         o.InjectStylesheet("/assets/css/swagger-theme-muted.css");
     });
-}
+//}
 
 app.UseHttpsRedirection();
 
