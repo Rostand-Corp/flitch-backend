@@ -11,6 +11,15 @@ using Web.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+
+builder.Configuration.AddConfiguration(configuration);
+
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
         builder.Configuration.GetConnectionString("ConnStr"))
