@@ -11,15 +11,9 @@ using Web.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-    .SetBasePath(Path.Combine(Directory.GetCurrentDirectory()))
-    .AddJsonFile("appsettings.json")
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-    .Build();
-
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
-        builder.Configuration["ConnectionStrings:ConnStr"])
+        builder.Configuration.GetConnectionString("ConnStr"))
 );
 
 builder.Services.AddFlitchAuth(builder.Configuration);
