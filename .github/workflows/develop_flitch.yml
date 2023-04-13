@@ -32,7 +32,7 @@ jobs:
         run: dotnet tool install -g dotnet-ef
         
       - name: dotnet bundle migration
-        run: dotnet ef migrations bundle --startup-project src/Web -p src/Infrastructure -o ${{env.DOTNET_ROOT}}/myapp/migrate
+        run: dotnet ef migrations bundle --startup-project src/Web -p src/Infrastructure -o ${{env.DOTNET_ROOT}}/myapp/migrate.exe --verbose
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
