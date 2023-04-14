@@ -1,10 +1,7 @@
 using Application.Chats.Services;
 using Application.Services;
-using Application.Services.Users;
-using Application.Users;
 using Application.Users.Services;
 using Infrastructure.Data;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Web;
 using Web.Middlewares;
@@ -20,9 +17,15 @@ var configuration = new ConfigurationBuilder()
 
 builder.Configuration.AddConfiguration(configuration);
 
+foreach (var value in configuration.AsEnumerable())
+{
+    Console.WriteLine($"{value.Key} {value.Value}");
+}
+Console.WriteLine(Environment.GetEnvironmentVariable("POSTGRESQLCONNSTR_ConnStr"));
+
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
-        builder.Configuration.GetConnectionString("ConnStr"))
+        builder.Configuration["POSTGRESQLCONNSTR_ConnStr"])
 );
 
 builder.Services.AddFlitchAuth(builder.Configuration);
