@@ -44,6 +44,10 @@ builder.Services.AddSwagger();
 
 var app = builder.Build();
 
+using var scope = app.Services.CreateScope();
+await using var dbContext = scope.ServiceProvider.GetRequiredService<FlitchDbContext>();
+await dbContext.Database.MigrateAsync();
+
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
