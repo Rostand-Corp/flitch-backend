@@ -20,9 +20,7 @@ public interface IAuthManager
     public Task<ResendEmailConfirmationResult> ResendEmailConfirmationById(string userId);
 
     public Task<ResendEmailConfirmationResult> ResendEmailConfirmationByEmail(string email);
-
-    public Task RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem);
-
+    
     public Task<IEnumerable<Claim>> RetrieveClaims(string userId);
 
 }

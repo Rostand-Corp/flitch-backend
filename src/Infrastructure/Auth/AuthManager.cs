@@ -3,7 +3,9 @@ using System.Security.Claims;
 using System.Web;
 using Domain.Entities;
 using Domain.Exceptions;
+using Domain.Validators;
 using Infrastructure.Auth.Results;
+using Infrastructure.Data;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +18,6 @@ public class AuthManager : IAuthManager
     private readonly UserManager<SystemUser> _userManager;
     private readonly IEmailSender _emailSender;
     private readonly ILogger<AuthManager> _logger;
-
     public AuthManager(
         UserManager<SystemUser> userManager,
         IEmailSender emailSender,
@@ -29,6 +30,9 @@ public class AuthManager : IAuthManager
 
     public async Task<RegistrationResult> RegisterUser(string username, string fullName, string email, string password)
     {
+        // TODO:
+        // I believe it is better to use TransactionScope here though unnecessary. Well, I will once any problem appear.
+        
         var userNameTaken = await _userManager.FindByNameAsync(username) is not null;
         if (userNameTaken)
         {
@@ -55,8 +59,6 @@ public class AuthManager : IAuthManager
             SecurityStamp = Guid.NewGuid().ToString(),
             UserName = username,
             FullName = fullName
-            // MessengerUser = new User {DisplayName = username} // Once there are more than 1 subsystem,
-                                                              // introduce initialization method
         };
 
         var result = await _userManager.CreateAsync(user, password);
@@ -68,6 +70,23 @@ public class AuthManager : IAuthManager
                 ErrorMessages = result.Errors.Select(error => error.Description)
             };
         }
+
+        var regResult = await RegisterInSubsystems(user);
+        
+        if (!regResult.Succeeded)
+        {
+            _logger.LogInformation("Could not create the user because of one or more errors occurred");
+            var rollbackDeleteResult = await _userManager.DeleteAsync(user);
+            if (!rollbackDeleteResult.Succeeded)
+            {
+                throw new Exception(String.Join(" ", rollbackDeleteResult)); // todo: 
+            }
+            return new RegistrationResult.ValidationError
+            {
+                ErrorMessages = regResult.Errors.Select(error => error.Description)
+            };
+        }
+        
 
         await SendConfirmationEmail(user, email);
         _logger.LogInformation(
@@ -390,26 +409,21 @@ public class AuthManager : IAuthManager
         };
     }
 
-    public async Task RegisterInSubsystem(string identityId, string subsystemIdentityId, Subsystems subsystem)
+    private async Task<IdentityResult> RegisterInSubsystems(SystemUser user)
     {
-        if (subsystem == Subsystems.Messenger)
+        var messengerUser = new User()
         {
-            var user = await _userManager.Users
-                .Include(user => user.MessengerUser)
-                .FirstOrDefaultAsync(user => user.Id.ToString() == identityId);
+            DisplayName = user.UserName,
+            Status = "Hi, I'm new here!"
+        };
+        
+        var validationResult = new UserValidator().Validate(messengerUser); // inject validator?
+        if (!validationResult.IsValid) throw new ValidationException("User", validationResult.ToDictionary());
 
-            if (user is null) throw new FlitchException("Auth.NoUser", Resources.UserDoesntExist);
+        user.MessengerUser = messengerUser;
 
-            if (user.MessengerUserId is not null)
-                throw new FlitchException("Messenger.User.AlreadyExists",
-                    "You are already registered"); // TODO: Must not know exactly about messenger domain
+        return await _userManager.UpdateAsync(user);
 
-            user.MessengerUserId = Guid.Parse(subsystemIdentityId);
-            await _userManager.UpdateAsync(user);
-        }
-
-        else
-            throw new NotImplementedException();
     }
 
     public async Task<IEnumerable<Claim>> RetrieveClaims(string userId)

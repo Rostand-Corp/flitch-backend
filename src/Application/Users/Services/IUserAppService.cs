@@ -5,7 +5,6 @@ namespace Application.Users.Services;
 
 public interface IUserAppService
 {
-    public Task<UserResponse> CreateUser(CreateUserCommand command);
     public Task<UserResponse> GetUserById(string id);
     public Task<IEnumerable<UserResponse>> GetUsers(GetUsersCommand command);
     public Task<UserResponse> UpdateUser(UpdateSelfCommand command);

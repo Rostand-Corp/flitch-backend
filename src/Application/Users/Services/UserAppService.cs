@@ -17,62 +17,18 @@ namespace Application.Users.Services;
 public class UserAppService : IUserAppService
 {
     private readonly FlitchDbContext _db;
-    private readonly IAuthManager _authManager;
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUser;
 
-    public UserAppService(FlitchDbContext db, IAuthManager authManager, IMapper mapper, ICurrentUserService currentUserService)
+    public UserAppService(FlitchDbContext db, IMapper mapper, ICurrentUserService currentUserService)
     {
         _db = db;
-        _authManager = authManager;
         _mapper = mapper;
         _currentUser = currentUserService;
     }
-
-    public async Task<UserResponse> CreateUser([NotNull] CreateUserCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        
-        ArgumentNullException.ThrowIfNull(command.DisplayName); // If it is null, then programmer / system's internal fault, emptiness check is domain concern
-        // ArgumentException.ThrowIfNullOrEmpty(command.IdentityId); // an exception is thrown here because it programmer fault
-        
-
-        var user = new User
-        {
-            Id = new Guid(), 
-            DisplayName = command.DisplayName,
-            Status = "Hi! I'm new here!",
-        }; 
-        
-        var validationResult = new UserValidator().Validate(user);
-        if (!validationResult.IsValid) throw new ValidationException("User", validationResult.ToDictionary());
-        
-        await using var transaction = await _db.Database.BeginTransactionAsync();
-       try
-       {
-           _db.Users.Add(user);
     
-           await _db.SaveChangesAsync(); 
-           
-           await _authManager.RegisterInSubsystem(
-                   _currentUser.UserId.ToString()!,
-                   user.Id.ToString(),
-                   Subsystems.Messenger);
-           // user.FlitchIdentity = Guid.Parse(command.IdentityId);
-
-           await _db.SaveChangesAsync();
-           
-           await transaction.CommitAsync();
-       }
-       catch (Exception)
-       {
-           await transaction.RollbackAsync();
-            throw;
-       }
-       
-       return _mapper.Map<UserResponse>(user);
-    }
-
+    // The user is created initially in the AuthManager. At this point there is no need to separate this logic.
+    
     public async Task<UserResponse> GetUserById(string id)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);

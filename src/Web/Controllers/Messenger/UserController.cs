@@ -20,19 +20,7 @@ namespace Web.Controllers.Messenger
         {
             _userAppService = userAppService;
         }
-
-        [Authorize]
-        [HttpPost]
-        [ProducesResponseType(typeof(UserResponse), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]
-        [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> CreateUser(CreateUserRequest request)
-        {
-            var command = new CreateUserCommand(request.DisplayName);
-            var response = await _userAppService.CreateUser(command);
-
-            return Ok(response);
-        }
+        
 
         /// <summary>
         /// Retrieves User resource
