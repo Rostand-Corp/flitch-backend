@@ -25,7 +25,7 @@ Console.WriteLine(Environment.GetEnvironmentVariable("POSTGRESQLCONNSTR_ConnStr"
 
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
-        builder.Configuration["POSTGRESQLCONNSTR_ConnStr"])
+        builder.Configuration["ConnectionStrings:ConnStr"])
 );
 
 builder.Services.AddFlitchAuth(builder.Configuration);

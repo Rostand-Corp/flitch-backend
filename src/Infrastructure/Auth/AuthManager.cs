@@ -414,11 +414,20 @@ public class AuthManager : IAuthManager
         var messengerUser = new User()
         {
             DisplayName = user.UserName,
-            Status = "Hi, I'm new here!"
+            FullName = user.FullName,
+            Status = "Hi, I'm new here!",
         };
         
         var validationResult = new UserValidator().Validate(messengerUser); // inject validator?
-        if (!validationResult.IsValid) throw new ValidationException("User", validationResult.ToDictionary());
+        if (!validationResult.IsValid)
+        {
+            var rollbackDeleteResult = await _userManager.DeleteAsync(user);
+            if (!rollbackDeleteResult.Succeeded)
+            {
+                throw new Exception(String.Join(" ", rollbackDeleteResult));// todo: handle this properly
+            }
+            throw new ValidationException("User", validationResult.ToDictionary()); // exception / result.
+        }
 
         user.MessengerUser = messengerUser;
 

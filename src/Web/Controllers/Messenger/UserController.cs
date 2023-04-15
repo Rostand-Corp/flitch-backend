@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
+using Application.Services;
 using Application.Services.Users.Commands;
 using Application.Users.Responses;
 using Application.Users.Services;
@@ -15,13 +16,38 @@ namespace Web.Controllers.Messenger
     public class UserController : ControllerBase
     {
         private IUserAppService _userAppService;
+        private ICurrentUserService _currentUser;
 
-        public UserController(IUserAppService userAppService)
+        public UserController(IUserAppService userAppService, ICurrentUserService currentUser)
         {
             _userAppService = userAppService;
+            _currentUser = currentUser;
         }
         
 
+        /// <summary>
+        /// Retrieves CURRENT User resource
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>UserResponse</returns>
+        /// <response code="200">Returns UserResponse</response>
+        /// <response code="400">Returns problem details if query parameter is invalid</response>
+        /// <response code="401">Returns 401 if client is unauthorized</response>
+        /// <response code="404">Returns problem details if user does not exist</response>
+        /// <response code="500">Returns problem details if critical internal server error occurred</response>
+        [Authorize(Policy = "MessengerId")]
+        [HttpGet("self")]
+        [ProducesResponseType(typeof(UserResponse), 200)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
+        public async Task<IActionResult> GetSelf()
+        {
+            var response = await _userAppService.GetUserById(_currentUser.MessengerUserId.ToString()!); // TODO: standardize string / guid
+            
+            return Ok(response);
+        }
+        
         /// <summary>
         /// Retrieves User resource
         /// </summary>
@@ -86,7 +112,7 @@ namespace Web.Controllers.Messenger
         [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> UpdateUser(UpdateUserRequest request)
         {
-            var command = new UpdateSelfCommand(request.DisplayName, request.Status);
+            var command = new UpdateSelfCommand(request.DisplayName, request.FullName, request.Status);
             var response = await _userAppService.UpdateUser(command);
 
             return Ok(response);

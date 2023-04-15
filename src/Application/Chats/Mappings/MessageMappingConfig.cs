@@ -20,6 +20,7 @@ public class MessageMappingConfig : IRegister
         config.NewConfig<Message, MessageReplyResponse>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Username, src => src.Sender.User.DisplayName)
+            .Map(dest=>dest.Fullname, src=>src.Sender.User.FullName)
             .Map(dest => dest.Content, src => src.Content)
             .Map(dest => dest.Timestamp, src => src.Timestamp);
 
@@ -27,6 +28,7 @@ public class MessageMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.Content, src => src.Content)
             .Map(dest => dest.AuthorUserName, src => src.Sender.User.DisplayName)
+            .Map(dest=>dest.AuthorFullName, src=>src.Sender.User.FullName)
             .Map(dest => dest.Timestamp, src => src.Timestamp);
     }
 }

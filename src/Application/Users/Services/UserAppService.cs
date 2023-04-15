@@ -28,6 +28,7 @@ public class UserAppService : IUserAppService
     }
     
     // The user is created initially in the AuthManager. At this point there is no need to separate this logic.
+
     
     public async Task<UserResponse> GetUserById(string id)
     {
@@ -64,12 +65,14 @@ public class UserAppService : IUserAppService
         ArgumentNullException.ThrowIfNull(command);
         
         ArgumentNullException.ThrowIfNull(command.DisplayName);
+        ArgumentNullException.ThrowIfNull(command.FullName);
         ArgumentNullException.ThrowIfNull(command.Status);
 
         var user = await _db.Users.FindAsync(_currentUser.MessengerUserId);
         if (user is null) throw new UserNotFoundException();
 
         user.DisplayName = command.DisplayName;
+        user.FullName = command.FullName;
         user.Status = command.Status;
 
         var validationResult = new UserValidator().Validate(user);
