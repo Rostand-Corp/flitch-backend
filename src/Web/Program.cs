@@ -42,6 +42,15 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwagger();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowLocalhost",
+        builder =>
+            builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
@@ -52,6 +61,7 @@ await dbContext.Database.MigrateAsync();
 //if (app.Environment.IsDevelopment())
 //{
     app.UseStaticFiles();
+
     app.UseSwagger();
     app.UseSwaggerUI(o =>
     {
@@ -60,6 +70,7 @@ await dbContext.Database.MigrateAsync();
 //}
 
 app.UseHttpsRedirection();
+app.UseCors("AllowLocalhost");
 
 app.UseAuthorization();
 
