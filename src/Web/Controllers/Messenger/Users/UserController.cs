@@ -1,15 +1,13 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
 using Application.Services;
 using Application.Services.Users.Commands;
 using Application.Users.Responses;
 using Application.Users.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Web.Controllers.Messenger.ViewModels;
+using Web.Controllers.Messenger.Users.ViewModels;
 
-namespace Web.Controllers.Messenger
+namespace Web.Controllers.Messenger.Users
 {
     [Route("api/users")]
     [ApiController]

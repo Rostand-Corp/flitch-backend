@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Web.Controllers.Messenger.ViewModels;
+namespace Web.Controllers.Messenger.Users.ViewModels;
 
 public class GetUsersRequest
 {
