@@ -73,20 +73,19 @@ namespace Web.Controllers.Messenger
         /// <summary>
         /// Retrieves Users resources
         /// </summary>
-        /// <param name="amount">Specifies number of records to retrieve</param>
-        /// <returns>UserResponse</returns>
-        /// <response code="200">Returns UserResponse</response>
-        /// <response code="400">Returns problem details if query parameter is invalid</response>
-        /// <response code="401">Returns 401 if client is unauthorized</response>
+        /// <param name="request">Specifies request parameters</param>
+        /// <returns>Array of UserResponse</returns>
+        /// <response code="200">Returns array of UserResponse</response>
+        /// <response code="400">Returns validation problem details if query parameters are invalid</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<UserResponse>), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> GetUsers([Range(1, int.MaxValue)] [FromQuery] int amount)
+        public async Task<IActionResult> GetUsers([FromQuery] GetUsersRequest request)
         {
-            var command = new GetUsersCommand(amount);
+            var command = new GetUsersCommand(request.PageNumber ?? 1, request.Amount ?? 50, request.SearchKeyWord!);
             var response = await _userAppService.GetUsers(command);
 
             return Ok(response);

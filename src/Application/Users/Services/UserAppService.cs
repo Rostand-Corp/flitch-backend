@@ -49,15 +49,20 @@ public class UserAppService : IUserAppService
 
         if (command.Amount <= 0) throw new FlitchException("User.Pagination", "You must retrieve one or more records");
 
-        var users = 
-            await _db.Users
-                .AsNoTracking()
-                .OrderByDescending(u => u.Id)
-                .Take(command.Amount)
-                .ProjectToType<UserResponse>()
-                .ToListAsync();
+        IQueryable<User> query = _db.Users.AsNoTracking().OrderByDescending(u => u.Id);
+        
+        if (!string.IsNullOrEmpty(command.SearchWord))
+        {
+            query = query.Where(u => u.DisplayName.ToLower().Contains(command.SearchWord.ToLower()));
+        }
+        
+        var users = await query
+            .Skip((command.PageNumber - 1) * command.Amount)
+            .Take(command.Amount)
+            .ProjectToType<UserResponse>()
+            .ToListAsync();
 
-        return users;
+        return users; // TODO: Add paged list?
     }
 
     public async Task<UserResponse> UpdateUser(UpdateSelfCommand command)
