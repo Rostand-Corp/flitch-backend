@@ -209,7 +209,11 @@ public class ChatService : IChatService
         
         return _mapper.Map<ChatFullResponse>(chat);
     }
-    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <remarks>If both PageNumber and Before parameters are set, only Before parameter is applied</remarks>
     public async Task<IEnumerable<MessageResponse>> GetChatMessages(GetChatMessagesCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
@@ -217,7 +221,12 @@ public class ChatService : IChatService
 
         if (command.Amount <= 0)
         {
-            throw new FlitchException("Chat.Messages.Pagination", "The amount value must be greater than 0", HttpStatusCode.BadRequest);
+            throw new FlitchException("Chat.Messages.Pagination", "You must retrieve one or more records", HttpStatusCode.BadRequest); // TODO: Validation
+        }
+        
+        if (command.PageNumber <= 0)
+        {
+            throw new FlitchException("Chat.Messages.Pagination", "You must specify a page with an index bigger than 0.", HttpStatusCode.BadRequest);
         }
 
         var chat = await _db.Chats
@@ -233,7 +242,7 @@ public class ChatService : IChatService
             throw new RestrictedException("Chat.NotParticipant",
                 "You are not a participant of this chat.");
 
-        var messages = chat.Messages.OrderByDescending(m => m.Timestamp).ToList(); // no multiple enumeration!! but it is not a problem here anyway
+        var messages = chat.Messages.OrderByDescending(m => m.Timestamp); // no multiple enumeration!! but it is not a problem here anyway
         
         if (command.Before is not null)
         {
@@ -247,8 +256,17 @@ public class ChatService : IChatService
 
             return _mapper.Map<IEnumerable<MessageResponse>>(messagesBeforeSpecific);
         }
+        
+        if (!string.IsNullOrWhiteSpace(command.SearchWord))
+        {
+            messages = messages.Where(c => c.Content.ToLower().Contains(command.SearchWord.ToLower())).OrderByDescending(m=>m.Timestamp);
+        }
 
-        return _mapper.Map<IEnumerable<MessageResponse>>(chat.Messages.Take(command.Amount));
+        var messagesForPage = messages
+            .Skip((command.PageNumber - 1) * command.Amount)
+            .Take(command.Amount);
+
+        return _mapper.Map<IEnumerable<MessageResponse>>(messagesForPage);
     }
 
     public async Task<MessageResponse> SendMessage(SendMessageCommand command)

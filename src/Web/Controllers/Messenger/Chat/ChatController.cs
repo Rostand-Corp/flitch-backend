@@ -1,7 +1,10 @@
+using System.Diagnostics;
+using System.Net;
 using System.Security.Claims;
 using Application.Chats.Commands;
 using Application.Chats.Responses;
 using Application.Chats.Services;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Messenger.Chat.ViewModels;
@@ -157,7 +160,24 @@ namespace Web.Controllers.Messenger.Chat
         [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> GetChatMessages([FromRoute] Guid chatId, [FromQuery] GetChatMessagesRequest request)
         {
-            var command = new GetChatMessagesCommand(chatId, request.Amount, request.Before);
+            if (request.PageNumber.HasValue && request.Before.HasValue)
+            {
+                return BadRequest(CreateValidationProblemDetails("Filtering",
+                    "You cannot set both 'PageNumber' and 'Before' parameters at the same time"));
+            }
+
+            if (request.SearchKeyWord is not null && request.Before.HasValue)
+            {
+                return BadRequest(CreateValidationProblemDetails("Filtering",
+                    "You cannot set both 'SearchKeyWord' and 'Before' parameters at the same time"));
+            }
+            
+            var command = new GetChatMessagesCommand(
+                chatId,
+                request.PageNumber ?? 1,
+                request.Amount ?? GetChatMessagesRequest.MaxAmount,
+                request.SearchKeyWord,
+                request.Before);
 
             return Ok(await _chatService.GetChatMessages(command));
         }
@@ -247,6 +267,20 @@ namespace Web.Controllers.Messenger.Chat
             var command = new DeleteMessageCommand(chatId, messageId);
 
             return Ok(await _chatService.DeleteMessage(command));
+        }
+
+        private ValidationProblemDetails CreateValidationProblemDetails(string parameter, string problem)
+        {
+            var validationProblemDetails = new ValidationProblemDetails()
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "One or more validation errors  occurred.",
+                Status = (int) HttpStatusCode.BadRequest,
+            };
+            validationProblemDetails.Extensions["traceId"] = HttpContext.TraceIdentifier;
+            validationProblemDetails.Errors[parameter] = new [] { problem };
+
+            return validationProblemDetails;
         }
     }
 }
