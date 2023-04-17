@@ -28,6 +28,7 @@ public class UserAppService : IUserAppService
     }
     
     // The user is created initially in the AuthManager. At this point there is no need to separate this logic.
+
     
     public async Task<UserResponse> GetUserById(string id)
     {
@@ -48,15 +49,20 @@ public class UserAppService : IUserAppService
 
         if (command.Amount <= 0) throw new FlitchException("User.Pagination", "You must retrieve one or more records");
 
-        var users = 
-            await _db.Users
-                .AsNoTracking()
-                .OrderByDescending(u => u.Id)
-                .Take(command.Amount)
-                .ProjectToType<UserResponse>()
-                .ToListAsync();
+        IQueryable<User> query = _db.Users.AsNoTracking().OrderByDescending(u => u.Id);
+        
+        if (!string.IsNullOrEmpty(command.SearchWord))
+        {
+            query = query.Where(u => u.DisplayName.ToLower().Contains(command.SearchWord.ToLower()));
+        }
+        
+        var users = await query
+            .Skip((command.PageNumber - 1) * command.Amount)
+            .Take(command.Amount)
+            .ProjectToType<UserResponse>()
+            .ToListAsync();
 
-        return users;
+        return users; // TODO: Add paged list?
     }
 
     public async Task<UserResponse> UpdateUser(UpdateSelfCommand command)
@@ -64,12 +70,14 @@ public class UserAppService : IUserAppService
         ArgumentNullException.ThrowIfNull(command);
         
         ArgumentNullException.ThrowIfNull(command.DisplayName);
+        ArgumentNullException.ThrowIfNull(command.FullName);
         ArgumentNullException.ThrowIfNull(command.Status);
 
         var user = await _db.Users.FindAsync(_currentUser.MessengerUserId);
         if (user is null) throw new UserNotFoundException();
 
         user.DisplayName = command.DisplayName;
+        user.FullName = command.FullName;
         user.Status = command.Status;
 
         var validationResult = new UserValidator().Validate(user);

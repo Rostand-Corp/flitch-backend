@@ -100,6 +100,29 @@ public static class ServiceCollectionExtensions
                     {"traceId", new OpenApiSchema{Type = "string"}},
                 },
             });
+            o.MapType<ValidationProblemDetails>(() => new OpenApiSchema
+            {
+                Type = "object",
+                Properties =
+                {
+                    {"type", new OpenApiSchema {Type = "string"}},
+                    {"title", new OpenApiSchema {Type = "string"}},
+                    {"status", new OpenApiSchema {Type = "integer", Format = "int32"}},
+                    {"detail", new OpenApiSchema {Type = "string"}},
+                    {"traceId", new OpenApiSchema {Type = "string"}},
+                    {"errors", new OpenApiSchema
+                        {
+                            Type = "object",
+                            AdditionalPropertiesAllowed = true,
+                            AdditionalProperties = new OpenApiSchema
+                            {
+                                Type = "array",
+                                Items = new OpenApiSchema { Type = "string" }
+                            }
+                        }
+                    }
+                },
+            });
                 o.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
