@@ -7,6 +7,7 @@ using Domain.Exceptions;
 using Domain.Exceptions.User;
 using FluentValidation;
 using Infrastructure.Data;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using ValidationException = Domain.Exceptions.ValidationException;
@@ -151,26 +152,36 @@ public class ChatService : IChatService
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        if (command.Amount <= 0) 
+        if (command.Amount <= 0)
             throw new FlitchException("User.Pagination", "You must retrieve one or more records");
+        if (command.PageNumber <= 0)
+            throw new FlitchException("User.Pagination", "You must specify a page with an index bigger than 0.");
 
-        var user = await _db.Users.FindAsync(_currentUser.MessengerUserId) 
+
+        var user = await _db.Users.FindAsync(_currentUser.MessengerUserId)
                    ?? throw new UserNotFoundException();
-    
-        var requestedChats =
-            await _db.Entry(user)
-                .Collection(u => u.Chats)
-                .Query()
-                .Include(c=>c.LastMessage)
-                .ThenInclude(m=>m.Sender)
-                .ThenInclude(cu=>cu.User)
-                .Take(command.Amount)
-                .OrderByDescending(c=>c.LastMessage != null ? c.LastMessage.Timestamp : c.Created)
-                .AsNoTracking()
-                .ToListAsync();
-            // long ass query
 
-        return _mapper.Map<IEnumerable<ChatBriefViewResponse>>(requestedChats);
+        var query = _db.Entry(user)
+            .Collection(u => u.Chats)
+            .Query()
+            .Include(c => c.LastMessage)
+            .ThenInclude(m => m.Sender)
+            .ThenInclude(cu => cu.User)
+            .OrderByDescending(c => c.LastMessage != null ? c.LastMessage.Timestamp : c.Created)
+            .AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(command.SearchWord))
+        {
+            query = query.Where(c => c.Name.Contains(command.SearchWord)); // Since it is Queryable, no NRE will be emitted. (It is OK case for DB)
+        }
+
+        var requestedChats = await query
+                .Skip((command.PageNumber - 1) * command.Amount)
+                .Take(command.Amount)
+                .ProjectToType<ChatBriefViewResponse>()
+                .ToListAsync();
+
+        return requestedChats;
     }
 
     public async Task<ChatFullResponse> GetChatById(GetChatByIdCommand command)
