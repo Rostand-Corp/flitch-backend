@@ -97,7 +97,7 @@ public class ChatService : IChatService
         {
             throw new ValidationException("Chat", new Dictionary<string, string[]>()
             {
-                ["Participants"] = new []{"You must specify at least 1 user to create group chat with"}
+                ["Participants"] = new []{"You must specify at least 1 user to create group chat with."}
             });
         }
 
@@ -153,10 +153,15 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(command);
 
         if (command.Amount <= 0)
-            throw new FlitchException("User.Pagination", "You must retrieve one or more records");
+            throw new ValidationException("User.Chats", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new []{"You must retrieve one or more records."}
+            });
         if (command.PageNumber <= 0)
-            throw new FlitchException("User.Pagination", "You must specify a page with an index bigger than 0.");
-
+            throw new ValidationException("User.Chats", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new[] {"You must specify a page with an index bigger than 0."}
+            });
 
         var user = await _db.Users.FindAsync(_currentUser.MessengerUserId)
                    ?? throw new UserNotFoundException();
@@ -219,15 +224,16 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(command);
         ArgumentNullException.ThrowIfNull(command.Id);
 
-        if (command.Amount <= 0)
-        {
-            throw new FlitchException("Chat.Messages.Pagination", "You must retrieve one or more records", HttpStatusCode.BadRequest); // TODO: Validation
-        }
-        
+       if (command.Amount <= 0)
+            throw new ValidationException("Chat.Messages", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new []{"You must retrieve one or more records."}
+            });
         if (command.PageNumber <= 0)
-        {
-            throw new FlitchException("Chat.Messages.Pagination", "You must specify a page with an index bigger than 0.", HttpStatusCode.BadRequest);
-        }
+            throw new ValidationException("Chat.Messages", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new[] {"You must specify a page with an index bigger than 0."}
+            });
 
         var chat = await _db.Chats
                        .AsNoTracking()
@@ -342,7 +348,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(command.MessageId);
         
         if (command.Content.Length > 500)
-            throw new ValidationException("Chat.Message",
+            throw new ValidationException("Chat",
                 new Dictionary<string, string[]>()
                 {
                     ["Message"] = new []{"Message must be less than 500 characters long."}
