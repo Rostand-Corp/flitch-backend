@@ -28,7 +28,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>
         /// <returns>ChatFullResponse</returns>
         /// <response code="201">Returns ChatFullResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (business / request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
         /// <response code="400">Returns problem details if you are trying to create a chat with yourself</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="404">Returns problem details if either creator or recipient do not exist</response>
@@ -38,6 +38,7 @@ namespace Web.Controllers.Messenger.Chat
         [HttpPost("private")]
         [ProducesResponseType(typeof(ChatFullResponse), 201)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 403)]
         [ProducesResponseType(typeof(ProblemDetails), 404)]
@@ -59,7 +60,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>
         /// <returns>ChatFullResponse</returns>
         /// <response code="201">Returns ChatFullResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (business / request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
         /// <response code="400">Returns problem details if user has not specified any participants</response>
         /// <response code="400">Returns problem details if user specified only himself as only participant</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
@@ -69,6 +70,7 @@ namespace Web.Controllers.Messenger.Chat
         [HttpPost("group")]
         [ProducesResponseType(typeof(ChatFullResponse), 201)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 404)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
@@ -87,14 +89,15 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>
         /// <returns>Array of ChatFullResponse</returns>
         /// <response code="201">Returns array of ChatFullResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (request)</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="404">Returns problem details if client does not exist</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [Authorize(Policy = "MessengerId")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ChatFullResponse>), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]        
+        [ProducesResponseType(typeof(ProblemDetails), 400)] 
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]   
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
         [ProducesResponseType(typeof(ProblemDetails), 500)]        
@@ -112,7 +115,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>                                                                     
         /// <returns>ChatFullResponse</returns>                                                       
         /// <response code="201">Returns ChatFullResponse</response>                                  
-        /// <response code="400">Returns problem details if validation problem occurs (request)</response>     
+        /// <response code="400">Returns validation problem details if validation problem occurs (request)</response>     
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="403">Returns problem details if user is not in the requested chat</response>
         /// <response code="404">Returns problem details if chat does not exist</response>                   
@@ -121,6 +124,7 @@ namespace Web.Controllers.Messenger.Chat
         [HttpGet("{chatId}")]
         [ProducesResponseType(typeof(ChatFullResponse), 200)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]        
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]       
         [ProducesResponseType(typeof(ProblemDetails), 403)]  
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
@@ -145,7 +149,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>
         /// <returns>Array of MessageResponse</returns>
         /// <response code="201">Returns array of MessageResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (request)</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="403">Returns problem details if user is not in the requested chat</response>
         /// <response code="404">Returns problem details if chat does not exist</response>
@@ -153,7 +157,8 @@ namespace Web.Controllers.Messenger.Chat
         [Authorize(Policy = "MessengerId")]
         [HttpGet("{chatId}/messages")]
         [ProducesResponseType(typeof(IEnumerable<MessageResponse>), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]        
+        [ProducesResponseType(typeof(ProblemDetails), 400)]   
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]       
         [ProducesResponseType(typeof(ProblemDetails), 403)]  
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
@@ -189,7 +194,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>
         /// <returns>MessageResponse</returns>
         /// <response code="201">Returns a MessageResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (business / request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="403">Returns problem details if user is not in the requested chat</response>
         /// <response code="404">Returns problem details if chat does not exist</response>
@@ -197,7 +202,8 @@ namespace Web.Controllers.Messenger.Chat
         [Authorize(Policy = "MessengerId")]
         [HttpPost("{chatId}/messages")]
         [ProducesResponseType(typeof(MessageResponse), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]        
+        [ProducesResponseType(typeof(ProblemDetails), 400)]    
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]       
         [ProducesResponseType(typeof(ProblemDetails), 403)]  
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
@@ -217,7 +223,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="request"></param>
         /// <returns>MessageResponse</returns>
         /// <response code="200">Returns a MessageResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (business / request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="403">Returns problem details if user is not in the requested chat</response>
         /// <response code="403">Returns problem details if user is not the message author</response>
@@ -227,7 +233,8 @@ namespace Web.Controllers.Messenger.Chat
         [Authorize(Policy = "MessengerId")]
         [HttpPut("{chatId}/messages/{messageId}")]
         [ProducesResponseType(typeof(MessageResponse), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]        
+        [ProducesResponseType(typeof(ProblemDetails), 400)]      
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]       
         [ProducesResponseType(typeof(ProblemDetails), 403)]  
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
@@ -247,7 +254,7 @@ namespace Web.Controllers.Messenger.Chat
         /// <param name="messageId"></param>
         /// <returns>MessageResponse</returns>
         /// <response code="200">Returns a MessageResponse</response>
-        /// <response code="400">Returns problem details if validation problem occurs (business / request)</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="403">Returns problem details if user is not in the requested chat</response>
         /// <response code="403">Returns problem details if user is not the message author</response>
@@ -257,7 +264,8 @@ namespace Web.Controllers.Messenger.Chat
         [Authorize(Policy = "MessengerId")]
         [HttpDelete("{chatId}/messages/{messageId}")]
         [ProducesResponseType(typeof(MessageResponse), 200)]
-        [ProducesResponseType(typeof(ProblemDetails), 400)]        
+        [ProducesResponseType(typeof(ProblemDetails), 400)]  
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]       
         [ProducesResponseType(typeof(ProblemDetails), 403)]  
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
