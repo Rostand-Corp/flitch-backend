@@ -129,15 +129,9 @@ namespace Web.Controllers.Messenger.Chat
         [ProducesResponseType(typeof(ProblemDetails), 403)]  
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
         [ProducesResponseType(typeof(ProblemDetails), 500)]   
-        public async Task<IActionResult> GetChatById([FromRoute] Guid chatId, [FromQuery] GetChatByIdRequest request)
+        public async Task<IActionResult> GetChatById([FromRoute] Guid chatId)
         {
-
-            if (!Enum.TryParse(request.Flag, ignoreCase: true, out ChatDisplayFlag flag))
-            {
-                return BadRequest("Invalid flag value. Expected: {default}");
-            }
-
-            var command = new GetChatByIdCommand(chatId, flag);
+            var command = new GetChatByIdCommand(chatId);
 
             return Ok(await _chatService.GetChatById(command));
         }
