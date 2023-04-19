@@ -172,7 +172,7 @@ public class ChatService : IChatService
 
         if (!string.IsNullOrWhiteSpace(command.SearchWord))
         {
-            query = query.Where(c => c.Name.Contains(command.SearchWord)); // Since it is Queryable, no NRE will be emitted. (It is OK case for DB)
+            query = query.Where(c => c.Name.Contains(command.SearchWord, StringComparison.OrdinalIgnoreCase)); // Since it is Queryable, no NRE will be emitted. (It is OK case for DB)
         }
 
         var requestedChats = await query
@@ -259,7 +259,10 @@ public class ChatService : IChatService
         
         if (!string.IsNullOrWhiteSpace(command.SearchWord))
         {
-            messages = messages.Where(c => c.Content.ToLower().Contains(command.SearchWord.ToLower())).OrderByDescending(m=>m.Timestamp);
+            messages = messages
+                .Where(c => c.Content
+                    .Contains(command.SearchWord, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(m=>m.Timestamp);
         }
 
         var messagesForPage = messages
