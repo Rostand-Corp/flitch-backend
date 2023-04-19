@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Application.Chats.Services;
 using Application.Services;
 using Application.Users.Services;
@@ -37,7 +38,12 @@ builder.Services.AddTransient<IChatService, ChatService>();
 builder.Services.AddMappings();
 builder.Services.AddValidation();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(
+    o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwagger();

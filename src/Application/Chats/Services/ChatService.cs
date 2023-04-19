@@ -7,6 +7,7 @@ using Domain.Exceptions;
 using Domain.Exceptions.User;
 using FluentValidation;
 using Infrastructure.Data;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using ValidationException = Domain.Exceptions.ValidationException;
@@ -96,7 +97,7 @@ public class ChatService : IChatService
         {
             throw new ValidationException("Chat", new Dictionary<string, string[]>()
             {
-                ["Participants"] = new []{"You must specify at least 1 user to create group chat with"}
+                ["Participants"] = new []{"You must specify at least 1 user to create group chat with."}
             });
         }
 
@@ -151,26 +152,44 @@ public class ChatService : IChatService
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        if (command.Amount <= 0) 
-            throw new FlitchException("User.Pagination", "You must retrieve one or more records");
+        if (command.Amount <= 0)
+            throw new ValidationException("User.Chats", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new []{"You must retrieve one or more records."}
+            });
+        if (command.PageNumber <= 0)
+            throw new ValidationException("User.Chats", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new[] {"You must specify a page with an index bigger than 0."}
+            });
 
-        var user = await _db.Users.FindAsync(_currentUser.MessengerUserId) 
+        var user = await _db.Users.FindAsync(_currentUser.MessengerUserId)
                    ?? throw new UserNotFoundException();
-    
-        var requestedChats =
-            await _db.Entry(user)
-                .Collection(u => u.Chats)
-                .Query()
-                .Include(c=>c.LastMessage)
-                .ThenInclude(m=>m.Sender)
-                .ThenInclude(cu=>cu.User)
-                .Take(command.Amount)
-                .OrderByDescending(c=>c.LastMessage != null ? c.LastMessage.Timestamp : c.Created)
-                .AsNoTracking()
-                .ToListAsync();
-            // long ass query
 
-        return _mapper.Map<IEnumerable<ChatBriefViewResponse>>(requestedChats);
+        var query = _db.Entry(user)
+            .Collection(u => u.Chats)
+            .Query()
+            .Include(c => c.LastMessage)
+            .ThenInclude(m => m.Sender)
+            .ThenInclude(cu => cu.User)
+            .OrderByDescending(c => c.LastMessage != null ? c.LastMessage.Timestamp : c.Created)
+            .AsNoTracking();
+
+        if (command.Filter != ChatTypeFilter.All)
+        {
+            if (command.Filter == ChatTypeFilter.Private)
+            {
+                query = query.Where(c => c.Type == ChatType.Private);
+            }
+        }
+
+        var requestedChats = await query
+                .Skip((command.PageNumber - 1) * command.Amount)
+                .Take(command.Amount)
+                .ProjectToType<ChatBriefViewResponse>()
+                .ToListAsync();
+
+        return requestedChats;
     }
 
     public async Task<ChatFullResponse> GetChatById(GetChatByIdCommand command)
@@ -198,16 +217,26 @@ public class ChatService : IChatService
         
         return _mapper.Map<ChatFullResponse>(chat);
     }
-    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <remarks>If both PageNumber and Before parameters are set, only Before parameter is applied</remarks>
     public async Task<IEnumerable<MessageResponse>> GetChatMessages(GetChatMessagesCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         ArgumentNullException.ThrowIfNull(command.Id);
 
-        if (command.Amount <= 0)
-        {
-            throw new FlitchException("Chat.Messages.Pagination", "The amount value must be greater than 0", HttpStatusCode.BadRequest);
-        }
+       if (command.Amount <= 0)
+            throw new ValidationException("Chat.Messages", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new []{"You must retrieve one or more records."}
+            });
+        if (command.PageNumber <= 0)
+            throw new ValidationException("Chat.Messages", new Dictionary<string, string[]>()
+            {
+                ["Pagination"] = new[] {"You must specify a page with an index bigger than 0."}
+            });
 
         var chat = await _db.Chats
                        .AsNoTracking()
@@ -222,7 +251,7 @@ public class ChatService : IChatService
             throw new RestrictedException("Chat.NotParticipant",
                 "You are not a participant of this chat.");
 
-        var messages = chat.Messages.OrderByDescending(m => m.Timestamp).ToList(); // no multiple enumeration!! but it is not a problem here anyway
+        var messages = chat.Messages.OrderByDescending(m => m.Timestamp); // no multiple enumeration!! but it is not a problem here anyway
         
         if (command.Before is not null)
         {
@@ -236,8 +265,20 @@ public class ChatService : IChatService
 
             return _mapper.Map<IEnumerable<MessageResponse>>(messagesBeforeSpecific);
         }
+        
+        if (!string.IsNullOrWhiteSpace(command.SearchWord))
+        {
+            messages = messages
+                .Where(c => c.Content
+                    .Contains(command.SearchWord, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(m=>m.Timestamp);
+        }
 
-        return _mapper.Map<IEnumerable<MessageResponse>>(chat.Messages.Take(command.Amount));
+        var messagesForPage = messages
+            .Skip((command.PageNumber - 1) * command.Amount)
+            .Take(command.Amount);
+
+        return _mapper.Map<IEnumerable<MessageResponse>>(messagesForPage);
     }
 
     public async Task<MessageResponse> SendMessage(SendMessageCommand command)
@@ -310,7 +351,7 @@ public class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(command.MessageId);
         
         if (command.Content.Length > 500)
-            throw new ValidationException("Chat.Message",
+            throw new ValidationException("Chat",
                 new Dictionary<string, string[]>()
                 {
                     ["Message"] = new []{"Message must be less than 500 characters long."}
