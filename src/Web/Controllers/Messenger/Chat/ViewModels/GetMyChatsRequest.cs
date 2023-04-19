@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Application.Chats.Commands;
 
 namespace Web.Controllers.Messenger.Chat.ViewModels;
 
@@ -17,10 +18,9 @@ public class GetMyChatsRequest
     public int? Amount { get; set; } = 50;
     
     /// <summary>
-    /// Key word to search for. Max length - 50. If not set, searches all the records.
+    /// Filter to search chats with. Values: all, private.
     /// </summary>
-    [MaxLength(50)]
-    public string? SearchKeyWord { get; set; }
+    public ChatTypeFilter Filter { get; set; }
 
     public const int MaxAmount = 50;
 }

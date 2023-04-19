@@ -175,9 +175,12 @@ public class ChatService : IChatService
             .OrderByDescending(c => c.LastMessage != null ? c.LastMessage.Timestamp : c.Created)
             .AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(command.SearchWord))
+        if (command.Filter != ChatTypeFilter.All)
         {
-            query = query.Where(c => c.Name.Contains(command.SearchWord, StringComparison.OrdinalIgnoreCase)); // Since it is Queryable, no NRE will be emitted. (It is OK case for DB)
+            if (command.Filter == ChatTypeFilter.Private)
+            {
+                query = query.Where(c => c.Type == ChatType.Private);
+            }
         }
 
         var requestedChats = await query

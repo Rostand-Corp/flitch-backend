@@ -1,15 +1,23 @@
+using Domain.Entities;
+
 namespace Application.Chats.Commands;
 
 public class GetMyChatsBriefViewsCommand
 {
-    public GetMyChatsBriefViewsCommand(int pageNumber, int amount, string searchWord)
+    public GetMyChatsBriefViewsCommand(int pageNumber, int amount, ChatTypeFilter filter)
     {
         PageNumber = pageNumber;
         Amount = amount;
-        SearchWord = searchWord;
+        Filter = filter;
     }
     
     public int PageNumber { get; set; }
     public int Amount { get; set; }
-    public string? SearchWord { get; set; }
+    public ChatTypeFilter Filter { get; set; }
+}
+
+public enum ChatTypeFilter
+{
+    All,
+    Private
 }

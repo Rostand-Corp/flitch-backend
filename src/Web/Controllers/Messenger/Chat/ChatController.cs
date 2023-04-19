@@ -103,7 +103,7 @@ namespace Web.Controllers.Messenger.Chat
         [ProducesResponseType(typeof(ProblemDetails), 500)]        
         public async Task<IActionResult> GetMyChats([FromQuery] GetMyChatsRequest request)
         {
-            var command = new GetMyChatsBriefViewsCommand(request.PageNumber ?? 1, request.Amount ?? GetMyChatsRequest.MaxAmount, request.SearchKeyWord!);
+            var command = new GetMyChatsBriefViewsCommand(request.PageNumber ?? 1, request.Amount ?? GetMyChatsRequest.MaxAmount, request.Filter);
 
             return Ok(await _chatService.GetMyChats(command));
         }
