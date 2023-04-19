@@ -8,7 +8,7 @@ public class GetMyChatsRequest
     /// Page number of the results to return (1-any). If not set, then return the first page.
     /// </summary>
     [Range(1, int.MaxValue)]
-    public int? PageNumber { get; set; } = 1;
+    public int? PageNumber { get; set; }
     
     /// <summary>
     /// Amount of records to return (1-50). If not set, then return max possible value.
