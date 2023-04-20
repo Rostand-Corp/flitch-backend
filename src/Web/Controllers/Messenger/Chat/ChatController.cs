@@ -210,6 +210,41 @@ namespace Web.Controllers.Messenger.Chat
         }
 
         /// <summary>
+        /// Updates the Chat
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <param name="request"></param>
+        /// <returns>ChatFullResponse</returns>
+        /// <response code="200">Returns a ChatFullResponse</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
+        /// <response code="401">Returns 401 if client is unauthorized</response>
+        /// <response code="403">Returns problem details if user is not in the requested chat</response>
+        /// <response code="403">Returns problem details if chat is a private chat</response>
+        /// <response code="404">Returns problem details if chat does not exist</response>
+        /// <response code="500">Returns problem details if critical internal server error occurred</response>
+        /// <remarks>
+        /// ## Remarks
+        /// ### Business rules
+        /// + Chat name must be less than 50 characters long.
+        /// + You cannot change a name of a private chat.
+        /// </remarks>
+        [Authorize(Policy = "MessengerId")]
+        [HttpPut("{chatId}")]
+        [ProducesResponseType(typeof(MessageResponse), 200)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]      
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
+        [ProducesResponseType(401)]       
+        [ProducesResponseType(typeof(ProblemDetails), 403)]  
+        [ProducesResponseType(typeof(ProblemDetails), 404)]        
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
+        public async Task<IActionResult> UpdateChat([FromRoute] Guid chatId, [FromBody] UpdateChatRequest request)
+        {
+            var command = new UpdateChatCommand(chatId, request.Name);
+
+            return Ok(await _chatService.UpdateChat(command));
+        }
+        
+        /// <summary>
         /// Updates the Message in the Chat
         /// </summary>
         /// <param name="chatId"></param>

@@ -17,6 +17,8 @@ public interface IChatService
     public Task<ChatFullResponse> UpdatePublicChatDetails(UpdatePublicChatCommand command);
     public Task<ChatUserBriefResponse> UpdateMemberRole(UpdateMemberRole command); // Change response maybe
     */
+
+    public Task<ChatFullResponse> UpdateChat(UpdateChatCommand command);
     public Task<MessageResponse> SendMessage(SendMessageCommand command);
     public Task<MessageResponse> UpdateMessage(UpdateMessageCommand command);
     public Task<MessageResponse> DeleteMessage(DeleteMessageCommand command);
