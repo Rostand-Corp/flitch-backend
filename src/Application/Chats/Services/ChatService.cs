@@ -281,6 +281,39 @@ public class ChatService : IChatService
         return _mapper.Map<IEnumerable<MessageResponse>>(messagesForPage);
     }
 
+    public async Task<ChatFullResponse> UpdateChat(UpdateChatCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(command.Id);
+        
+        if (command.Name.Length > 50)
+            throw new ValidationException("Chat",
+                new Dictionary<string, string[]>()
+                {
+                    ["Name"] = new []{"Chat name must be less than 50 characters long."}
+                });
+        var chat = await _db.Chats
+                       .Include(c=>c.Participants)
+                       .ThenInclude(cu=>cu.User)
+                       .SingleOrDefaultAsync(c=>c.Id == command.Id)
+                   ?? throw new NotFoundException("Chat.NotFound", "The specified chat does not exist.");
+
+        if (!chat.Participants.Any(u => u.UserId == _currentUser.MessengerUserId))
+            throw new RestrictedException("Chat.NotParticipant",
+                "You are not a participant of this chat.");
+
+        if (chat.Type is ChatType.Private)
+            throw new RestrictedException("Chat.Type", "You cannot change the name of a private chat");
+        
+        // if(chat.Type is ChatType.Public) // Check if user is admin ... 
+
+        chat.Name = command.Name; // No need to call Update() since it is tracked. It must be a preferable style in future.
+
+        await _db.SaveChangesAsync();
+
+        return _mapper.Map<ChatFullResponse>(chat);
+    }
+
     public async Task<MessageResponse> SendMessage(SendMessageCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
