@@ -321,7 +321,7 @@ public class ChatService : IChatService
         ArgumentException.ThrowIfNullOrEmpty(command.Content);
 
         if (command.Content.Length > 500)
-            throw new ValidationException("Chat.Message",
+            throw new ValidationException("Chat",
                 new Dictionary<string, string[]>()
                 {
                     ["Message"] = new []{"Message must be less than 500 characters long."}
