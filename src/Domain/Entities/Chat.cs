@@ -17,7 +17,7 @@ public class Chat
     public DateTime Created { get; set; }
 
     public List<User> Users { get; init; } = new();
-    public List<ChatUser> Participants { get; init; } = new();
+    public List<ChatUser> Participants { get; set; } = new();
 
 }
 
