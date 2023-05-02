@@ -270,6 +270,31 @@ namespace Web.Controllers.Messenger.Chat
 
             return Ok(await _chatService.DeleteMessage(command));
         }
+        
+        /// <summary>
+        /// Leaves the chat for the current user
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <returns>ChatUserBriefResponse</returns>
+        /// <response code="200">Returns a ChatUserBriefResponse</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (request)</response>
+        /// <response code="401">Returns 401 if client is unauthorized</response>
+        /// <response code="403">Returns problem details if user is not in the requested chat</response>
+        /// <response code="404">Returns problem details if chat does not exist</response>
+        /// <response code="500">Returns problem details if critical internal server error occurred</response>
+        [Authorize(Policy = "MessengerId")]
+        [HttpDelete("{chatId}/leave")] // 'Leave' verb feels the most suitable here. Will maybe be changed as app expands.
+        [ProducesResponseType(typeof(MessageResponse), 200)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
+        [ProducesResponseType(401)]       
+        [ProducesResponseType(typeof(ProblemDetails), 403)]  
+        [ProducesResponseType(typeof(ProblemDetails), 404)]        
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
+        public async Task<ActionResult<ChatUserBriefResponse>> LeaveChat([FromRoute] Guid chatId)
+        {
+            var command = new LeaveGroupCommand(chatId);
+            return Ok(await _chatService.LeaveGroup(command));
+        }
 
         private ValidationProblemDetails CreateValidationProblemDetails(string parameter, string problem)
         {

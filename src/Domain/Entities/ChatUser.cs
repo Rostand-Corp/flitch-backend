@@ -14,10 +14,11 @@ public class ChatUser
 
     public ChatRole Role { get; set; }
     public DateTime Joined { get; set; }
+    public bool IsActive { get; set; } = true;
 }
 
 public enum ChatRole
 {
     Participant,
-    Creator
+    Creator,
 }

@@ -439,6 +439,27 @@ public class ChatService : IChatService
 
         return _mapper.Map<MessageResponse>(deletedMessage);
     }
-    
-    
+
+    public async Task<ChatUserBriefResponse> LeaveGroup(LeaveGroupCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(command.ChatId);
+        
+        var chat = await _db.Chats
+                       .Include(c=>c.Participants)
+                       .SingleOrDefaultAsync(c=> c.Id == command.ChatId) ??
+                   throw new NotFoundException("Chat.NotFound", "The specified chat does not exist");
+        
+        var currentUser = chat.Participants.FirstOrDefault(u => u.UserId == _currentUser.MessengerUserId && u.IsActive) ??
+                          throw new RestrictedException("Chat.NotParticipant",
+                              "You are not a participant of this chat.");
+
+        currentUser.IsActive = false;
+
+        await _db.SaveChangesAsync();
+        
+        return _mapper.Map<ChatUserBriefResponse>(currentUser);
+
+
+    }
 }
