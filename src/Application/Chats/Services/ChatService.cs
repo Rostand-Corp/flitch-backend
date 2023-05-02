@@ -347,7 +347,7 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<MessageResponse> UpdateMessage(UpdateMessageCommand command) // 5/2/23 : [feature-leave-group] Need to check if is in the group
+    public async Task<MessageResponse> UpdateMessage(UpdateMessageCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         ArgumentNullException.ThrowIfNull(command.ChatId);
@@ -395,7 +395,7 @@ public class ChatService : IChatService
         return _mapper.Map<MessageResponse>(updatedMessage);
     }
 
-    public async Task<MessageResponse> DeleteMessage(DeleteMessageCommand command) // 5/2/23 : [feature-leave-group] Need to check if is in the group
+    public async Task<MessageResponse> DeleteMessage(DeleteMessageCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
         ArgumentNullException.ThrowIfNull(command.ChatId);
@@ -458,12 +458,22 @@ public class ChatService : IChatService
         
         var chat = await _db.Chats
                        .Include(c=>c.Participants)
+                        .ThenInclude(cu=>cu.User) // This is done merely for the sake of mapping the response
+                                                          // (so I can include username and fullname because I believe frontend wants this)
                        .SingleOrDefaultAsync(c=> c.Id == command.ChatId) ??
                    throw new NotFoundException("Chat.NotFound", "The specified chat does not exist");
         
         var currentUser = chat.Participants.FirstOrDefault(u => u.UserId == _currentUser.MessengerUserId && u.IsActive) ??
                           throw new RestrictedException("Chat.NotParticipant",
                               "You are not a participant of this chat.");
+        
+        if (chat.Type is not ChatType.Group)
+        {
+            throw new ValidationException("Chat", new Dictionary<string, string[]>()
+            {
+                ["Type"] = new []{"You can leave only from group chats."}
+            });
+        }
 
         currentUser.IsActive = false;
 
@@ -472,5 +482,63 @@ public class ChatService : IChatService
         return _mapper.Map<ChatUserBriefResponse>(currentUser);
 
 
+    }
+
+    public async Task<ChatUserBriefResponse> AddUserToGroupChat(AddUserToGroupChatCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(command.ChatId);
+        ArgumentNullException.ThrowIfNull(command.UserId);
+        
+        var chat = await _db.Chats
+                       .Include(c=>c.Participants)
+                       .SingleOrDefaultAsync(c=> c.Id == command.ChatId) ??
+                   throw new NotFoundException("Chat.NotFound", "The specified chat does not exist");
+
+        if (!chat.Participants.Any(u => u.UserId == _currentUser.MessengerUserId && u.IsActive))
+        {
+            throw new RestrictedException("Chat.NotParticipant",
+                "You are not a participant of this chat.");
+        }
+        
+        if (chat.Type is not ChatType.Group)
+        {
+            throw new ValidationException("Chat", new Dictionary<string, string[]>()
+            {
+                ["Type"] = new []{"You can add users only to group chats."}
+            });
+        }
+
+        var addedUser = await _db.Users.FindAsync(command.UserId) ??
+                        throw new NotFoundException("User.NotFound", "The invited user was not found.");
+
+        var existingChatUser = chat.Participants.SingleOrDefault(cu => cu.UserId == addedUser.Id);
+        
+        if (existingChatUser is null)
+        {
+            var newChatUser = new ChatUser
+            {
+                User = addedUser,
+                Role = ChatRole.Participant
+            };
+            
+            chat.Participants.Add(newChatUser);
+
+            return _mapper.Map<ChatUserBriefResponse>(newChatUser);
+        }
+
+        if (existingChatUser.IsActive)
+        {
+            throw new ValidationException("Chat", new Dictionary<string, string[]>()
+            {
+                ["User"] = new []{"User is already in the chat."}
+            });
+        }
+
+        existingChatUser.IsActive = true;
+
+        await _db.SaveChangesAsync();
+
+        return _mapper.Map<ChatUserBriefResponse>(existingChatUser);
     }
 }

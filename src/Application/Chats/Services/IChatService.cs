@@ -22,8 +22,9 @@ public interface IChatService
     public Task<MessageResponse> DeleteMessage(DeleteMessageCommand command);
 
     public Task<ChatUserBriefResponse> LeaveGroup(LeaveGroupCommand command);
-    /*
     public Task<ChatUserBriefResponse> AddUserToGroupChat(AddUserToGroupChatCommand command);
+    
+    /*
     public Task<ChatUserBriefResponse> AddUserToPublicChat(AddUserToPublicChatCommand command);
     public Task<ChatUserBriefResponse> RemoveUserFromPublicChat(RemoveUserFromPublicChatCommand command);
 

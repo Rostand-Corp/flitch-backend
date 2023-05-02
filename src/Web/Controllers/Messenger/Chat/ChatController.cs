@@ -272,6 +272,32 @@ namespace Web.Controllers.Messenger.Chat
         }
         
         /// <summary>
+        /// Adds the User to the Chat
+        /// </summary>
+        /// <param name="chatId"></param>
+        /// <returns>ChatUserBriefResponse</returns>
+        /// <response code="200">Returns a ChatUserBriefResponse</response>
+        /// <response code="400">Returns validation problem details if validation problem occurs (business / request)</response>
+        /// <response code="401">Returns 401 if client is unauthorized</response>
+        /// <response code="403">Returns problem details if user that invites is not in the chat</response>
+        /// <response code="404">Returns problem details if chat does not exist</response>
+        /// <response code="404">Returns problem details if invited user does not exist</response>
+        /// <response code="500">Returns problem details if critical internal server error occurred</response>
+        [Authorize(Policy = "MessengerId")]
+        [HttpPost("{chatId}/participants")]
+        [ProducesResponseType(typeof(MessageResponse), 200)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
+        [ProducesResponseType(401)]       
+        [ProducesResponseType(typeof(ProblemDetails), 403)]  
+        [ProducesResponseType(typeof(ProblemDetails), 404)]        
+        [ProducesResponseType(typeof(ProblemDetails), 500)]
+        public async Task<ActionResult<ChatUserBriefResponse>> AddUserToGroupChat([FromRoute] Guid chatId, [FromBody] AddUserToGroupChatRequest request)
+        {
+            var command = new AddUserToGroupChatCommand(chatId: chatId, userId: request.UserId);
+            return Ok(await _chatService.AddUserToGroupChat(command));
+        }
+        
+        /// <summary>
         /// Leaves the chat for the current user
         /// </summary>
         /// <param name="chatId"></param>
@@ -295,6 +321,8 @@ namespace Web.Controllers.Messenger.Chat
             var command = new LeaveGroupCommand(chatId);
             return Ok(await _chatService.LeaveGroup(command));
         }
+        
+        
 
         private ValidationProblemDetails CreateValidationProblemDetails(string parameter, string problem)
         {
