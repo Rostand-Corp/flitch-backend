@@ -212,6 +212,8 @@ public class ChatService : IChatService
                 "You are not a participant of this chat.");
 
         var creator = chat.Participants.FirstOrDefault(cu => cu.Role == ChatRole.Creator);
+
+        chat.Participants = chat.Participants.Where(cu => cu.IsActive).ToList();
         var response = _mapper.Map<ChatFullResponse>(chat);
         response.CreatorId = creator?.Id;
         response.CreatorName = creator?.User.DisplayName; // To some dto maybe
