@@ -2,7 +2,7 @@
 
 namespace Web.Controllers.Messenger.Auth.ViewModels;
 
-public class ForgotPassModel
+public class ForgotPassRequest
 {
     [Required]
     [EmailAddress]

@@ -2,9 +2,9 @@
 
 namespace Web.Controllers.Messenger.Auth.ViewModels;
 
-public class RegisterModel
+public class RegisterRequest
 {
-    [Required] // Todo: Try moving it to the natural modifier
+    [Required]
     [MinLength(6), MaxLength(16)]
     public string? Username { get; set; }
     [Required]

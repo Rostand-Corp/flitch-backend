@@ -2,9 +2,9 @@
 
 namespace Web.Controllers.Messenger.Auth.ViewModels;
 
-public class LoginModel
+public class LoginRequest
 {
-    [Required] // Todo: Try moving it to the natural modifier
+    [Required]
     [EmailAddress]
     public string Email { get; set; }
     [Required]

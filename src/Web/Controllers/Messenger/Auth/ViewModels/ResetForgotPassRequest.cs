@@ -2,7 +2,7 @@
 
 namespace Web.Controllers.Messenger.Auth.ViewModels;
 
-public class ResetForgotPassModel
+public class ResetForgotPassRequest
 {
     [Required] 
     public string? Password { get; set; }

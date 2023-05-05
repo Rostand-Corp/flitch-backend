@@ -2,7 +2,7 @@
 
 namespace Web.Controllers.Messenger.Auth.ViewModels;
 
-public class ResetPassModel
+public class ResetPassRequest
 {
     [Required] 
     [MinLength(6)] 
