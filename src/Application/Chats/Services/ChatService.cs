@@ -167,14 +167,16 @@ public class ChatService : IChatService
                    ?? throw new UserNotFoundException();
 
         var query = _db.Chats
-            .Include(c => c.Participants)
-            .Include(c=>c.LastMessage)
+            .AsNoTracking()
+            .Include(c => c.Participants.Where(cu=>cu.IsActive))
+            .ThenInclude(p=>p.User)
+            .Include(c => c.LastMessage)
             .ThenInclude(m => m.Sender)
             .ThenInclude(cu => cu.User)
             .Where(c =>
                 c.Participants.Any(cu => cu.UserId == _currentUser.MessengerUserId && cu.IsActive))
             .OrderByDescending(c => c.LastMessage != null ? c.LastMessage.Timestamp : c.Created)
-            .AsNoTracking();
+            .AsQueryable();
 
         if (command.Filter != ChatTypeFilter.All)
         {
@@ -187,10 +189,10 @@ public class ChatService : IChatService
         var requestedChats = await query
                 .Skip((command.PageNumber - 1) * command.Amount)
                 .Take(command.Amount)
-                .ProjectToType<ChatBriefViewResponse>()
                 .ToListAsync();
+        // I don't use ProjectToType here intentionally as it causes nasty behaviour (it overrides includes so the filters stop working)
 
-        return requestedChats;
+        return _mapper.Map<IEnumerable<ChatBriefViewResponse>>(requestedChats);
     }
 
     public async Task<ChatFullResponse> GetChatById(GetChatByIdCommand command)

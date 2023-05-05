@@ -18,6 +18,8 @@ public class ChatMappingConfig : IRegister
         config.NewConfig<Chat, ChatBriefViewResponse>()
             .Map(dest => dest.Id, src => src.Id)    
             .Map(dest => dest.ChatName, src => src.Name)
+            .Map(dest => dest.Type, src => src.Type)
+            .Map(dest => dest.Participants, src => src.Participants)
             .Map(dest => dest.LastMessage, src => src.LastMessage);
     }
 }
