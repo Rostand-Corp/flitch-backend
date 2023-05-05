@@ -42,7 +42,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 500)]
         public async Task<IActionResult> Login([FromBody] LoginModel request)
         {
-            var result = await _authManager.Login(request.Username!, request.Password!);
+            var result = await _authManager.Login(request.Email!, request.Password!);
 
             return result switch
             {
@@ -346,8 +346,8 @@ namespace Web.Controllers
     public class LoginModel
     {
         [Required] // Todo: Try moving it to the natural modifier
-        [MinLength(6), MaxLength(16)]
-        public string? Username { get; set; }
+        [EmailAddress]
+        public string Email { get; set; }
         [Required]
         [MinLength(6)]
         public string? Password { get; set; }

@@ -7,7 +7,7 @@ public interface IAuthManager
 {
     public Task<RegistrationResult> RegisterUser(string username, string fullName, string email, string password);
 
-    public Task<LoginResult> Login(string username, string password);
+    public Task<LoginResult> Login(string email, string password);
 
     public Task<ResetKnownPasswordResult> ResetPassword(string email, string oldPassword, string newPassword);
 

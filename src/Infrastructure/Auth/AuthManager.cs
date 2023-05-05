@@ -135,11 +135,11 @@ public class AuthManager : IAuthManager
         await SendConfirmationEmail(user, email);
     }
 
-    public async Task<LoginResult> Login(string username, string password)
+    public async Task<LoginResult> Login(string email, string password)
     {
         var validationMessages = new List<string>();
 
-        if (string.IsNullOrEmpty(username)) validationMessages.Add(Resources.SpecifyUserName);
+        if (string.IsNullOrEmpty(email)) validationMessages.Add(Resources.SpecifyUserName);
 
         if (string.IsNullOrEmpty(password)) validationMessages.Add(Resources.SpecifyPassword);
 
@@ -149,11 +149,11 @@ public class AuthManager : IAuthManager
                 ErrorMessages = validationMessages
             };
 
-        var user = await _userManager.FindByNameAsync(username);
+        var user = await _userManager.FindByEmailAsync(email);
 
         if (user is null)
         {
-            _logger.LogInformation("Could not create the user because the user with such nickname does not exist");
+            _logger.LogInformation("Could not create the user because the user with such email does not exist");
             return new LoginResult.UserDoesntExist
             {
                 ErrorMessage = Resources.UserDoesntExist
@@ -172,7 +172,7 @@ public class AuthManager : IAuthManager
             };
         }
 
-        _logger.LogInformation("User {UserName} has successfully logged in", username);
+        _logger.LogInformation("User {UserName} has successfully logged in", user.Email);
 
         return new LoginResult.Success
         {
