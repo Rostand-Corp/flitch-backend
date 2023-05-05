@@ -327,10 +327,5 @@ namespace Web.Controllers
         [Required] public string Token { get; set; }
         [Required] public DateTime ExpiryDate { get; set; }
     }
-
-    public class Response
-    {
-        public string? Status { get; set; }
-        public string? Message { get; set; }
-    }
+    
 }
