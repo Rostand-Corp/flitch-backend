@@ -39,7 +39,7 @@ namespace Web.Controllers.Messenger.Users
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> GetSelf()
+        public async Task<ActionResult<UserResponse>> GetSelf()
         {
             var response = await _userAppService.GetUserById(_currentUser.MessengerUserId.ToString()!); // TODO: standardize string / guid
             
@@ -61,7 +61,7 @@ namespace Web.Controllers.Messenger.Users
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> GetUserById([Required] [FromRoute] string id)
+        public async Task<ActionResult<UserResponse>> GetUserById([Required] [FromRoute] string id)
         {
             var response = await _userAppService.GetUserById(id);
             
@@ -81,7 +81,7 @@ namespace Web.Controllers.Messenger.Users
         [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> GetUsers([FromQuery] GetUsersRequest request)
+        public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers([FromQuery] GetUsersRequest request)
         {
             var command = new GetUsersCommand(request.PageNumber ?? 1, request.Amount ?? 50, request.SearchKeyWord!);
             var response = await _userAppService.GetUsers(command);
@@ -107,7 +107,7 @@ namespace Web.Controllers.Messenger.Users
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 404)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> UpdateUser(UpdateUserRequest request)
+        public async Task<ActionResult<UserResponse>> UpdateUser(UpdateUserRequest request)
         {
             var command = new UpdateSelfCommand(request.DisplayName, request.FullName, request.Status);
             var response = await _userAppService.UpdateUser(command);
@@ -132,22 +132,11 @@ namespace Web.Controllers.Messenger.Users
         [ProducesResponseType(401)]
         [ProducesResponseType(typeof(ProblemDetails), 404)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> DeleteUser([FromRoute] string id)
+        public async Task<ActionResult<UserResponse>> DeleteUser([FromRoute] string id)
         {
             var response = await _userAppService.DeleteUser(id);
 
             return Ok(response);
         }
-        
-
-        /*private string GetFlitchIdentity()
-        {
-            return User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        } // Was moved to the CurrentUserService */
-
-        /*private string GetMessengerIdentity()
-        {
-            return User.Claims.FirstOrDefault(c => c.Type == "msngrUserId")?.Value;
-        } // Was moved to the CurrentUserService */
     }
 }
