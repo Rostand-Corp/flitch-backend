@@ -87,21 +87,21 @@ namespace Web.Controllers.Messenger.Chat
         /// Retrieves current user's Chats
         /// </summary>
         /// <param name="request"></param>
-        /// <returns>Array of ChatFullResponse</returns>
-        /// <response code="201">Returns array of ChatFullResponse</response>
+        /// <returns>Array of ChatBriefResponse</returns>
+        /// <response code="201">Returns array of ChatBriefResponse</response>
         /// <response code="400">Returns validation problem details if validation problem occurs (request)</response>
         /// <response code="401">Returns 401 if client is unauthorized</response>
         /// <response code="404">Returns problem details if client does not exist</response>
         /// <response code="500">Returns problem details if critical internal server error occurred</response>
         [Authorize(Policy = "MessengerId")]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ChatFullResponse>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<ChatBriefViewResponse>), 200)]
         [ProducesResponseType(typeof(ProblemDetails), 400)] 
         [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
         [ProducesResponseType(401)]   
         [ProducesResponseType(typeof(ProblemDetails), 404)]        
         [ProducesResponseType(typeof(ProblemDetails), 500)]        
-        public async Task<IActionResult> GetMyChats([FromQuery] GetMyChatsRequest request)
+        public async Task<ActionResult<IEnumerable<ChatBriefViewResponse>>> GetMyChats([FromQuery] GetMyChatsRequest request)
         {
             var command = new GetMyChatsBriefViewsCommand(request.PageNumber ?? 1, request.Amount ?? GetMyChatsRequest.MaxAmount, request.Filter);
 
