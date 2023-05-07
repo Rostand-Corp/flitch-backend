@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Web.Controllers.Messenger.Auth.ViewModels;
+namespace Web.ViewModels.Auth;
 
 public class ResetForgotPassRequest
 {

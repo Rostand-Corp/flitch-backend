@@ -7,7 +7,7 @@ using Infrastructure.Auth.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Web.Controllers.Messenger.Auth.ViewModels;
+using Web.ViewModels.Auth;
 
 namespace Web.Controllers
 {

@@ -1,15 +1,12 @@
-using System.Diagnostics;
 using System.Net;
-using System.Security.Claims;
 using Application.Chats.Commands;
 using Application.Chats.Responses;
 using Application.Chats.Services;
-using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Web.Controllers.Messenger.Chat.ViewModels;
+using Web.ViewModels.Chat;
 
-namespace Web.Controllers.Messenger.Chat
+namespace Web.Controllers
 {
     [Route("api/chats")]
     [ApiController]
