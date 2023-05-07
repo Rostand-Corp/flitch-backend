@@ -41,7 +41,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult<LoginResult>> Login([FromBody] LoginModel request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authManager.Login(request.Email!, request.Password!);
 
@@ -77,7 +77,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult<RegistrationResult>> Register([FromBody] RegisterModel request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await _authManager.RegisterUser(request.Username!, request.FullName!,request.Email!, request.Password!);
 
@@ -116,7 +116,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult>
+        public async Task<IActionResult>
             ConfirmEmail(
                 [Required] string token) // Well, I wonder if I can just fire and forget this. Need to resolve disposal problems then
         {
@@ -155,7 +155,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult<ResendEmailConfirmationResult>> ResendEmailConfirmation()
+        public async Task<IActionResult> ResendEmailConfirmation()
         {
             var userEmail = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value; // Validate
             var result = await _authManager.ResendEmailConfirmationByEmail(userEmail);
@@ -191,7 +191,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult<ResetKnownPasswordResult>> ResetPassword([FromBody] ResetPassModel request)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPassRequest request)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
             var result = await _authManager.ResetPassword(userId!, request.OldPassword!, request.NewPassword!);
@@ -224,7 +224,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult<SendForgotPasswordResetEmailResult>> SendForgotPasswordResetEmail([FromBody] ForgotPassModel request)
+        public async Task<IActionResult> SendForgotPasswordResetEmail([FromBody] ForgotPassRequest request)
         {
             var result = await _authManager.SendForgotPasswordResetEmail(request.Email!);
 
@@ -259,7 +259,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<ActionResult<ResetForgotPasswordResult>> ResetForgotPassword([FromBody] ResetForgotPassModel request)
+        public async Task<IActionResult> ResetForgotPassword([FromBody] ResetForgotPassRequest request)
         {
             var result = await _authManager.ResetForgotPassword(request.Email!, request.Token!, request.Password!);
 
