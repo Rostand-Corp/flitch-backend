@@ -1,25 +1,26 @@
 using System.ComponentModel.DataAnnotations;
+using Application.Chats.Commands;
 
-namespace Web.Controllers.Messenger.Users.ViewModels;
+namespace Web.ViewModels.Chat;
 
-public class GetUsersRequest
+public class GetMyChatsRequest
 {
-    
     /// <summary>
     /// Page number of the results to return (1-any). If not set, then return the first page.
     /// </summary>
     [Range(1, int.MaxValue)]
-    public int? PageNumber { get; set; } = 1;
+    public int? PageNumber { get; set; }
     
     /// <summary>
     /// Amount of records to return (1-50). If not set, then return max possible value.
     /// </summary>
-    [Range(1, 50)]
+    [Range(1, MaxAmount)]
     public int? Amount { get; set; } = 50;
     
     /// <summary>
-    /// Key word to search for. Max length - 50. If not set, searches all the records.
+    /// Filter to search chats with. Values: all, private.
     /// </summary>
-    [MaxLength(50)]
-    public string? SearchKeyWord { get; set; }
+    public ChatTypeFilter Filter { get; set; }
+
+    public const int MaxAmount = 50;
 }
