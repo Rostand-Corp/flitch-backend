@@ -5,9 +5,9 @@ using Application.Users.Responses;
 using Application.Users.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Web.Controllers.Messenger.Users.ViewModels;
+using Web.ViewModels.User;
 
-namespace Web.Controllers.Messenger.Users
+namespace Web.Controllers
 {
     [Route("api/users")]
     [ApiController]

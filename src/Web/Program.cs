@@ -18,12 +18,6 @@ var configuration = new ConfigurationBuilder()
 
 builder.Configuration.AddConfiguration(configuration);
 
-foreach (var value in configuration.AsEnumerable())
-{
-    Console.WriteLine($"{value.Key} {value.Value}");
-}
-Console.WriteLine(Environment.GetEnvironmentVariable("POSTGRESQLCONNSTR_ConnStr"));
-
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
         builder.Configuration["POSTGRESQLCONNSTR_ConnStr"])
@@ -35,6 +29,7 @@ builder.Services.AddFlitchEmailing(builder.Configuration);
 builder.Services.AddTransient<ICurrentUserService, CurrentUserService>();
 builder.Services.AddTransient<IUserAppService, UserAppService>();
 builder.Services.AddTransient<IChatService, ChatService>();
+
 builder.Services.AddMappings();
 builder.Services.AddValidation();
 

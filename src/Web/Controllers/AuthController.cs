@@ -7,6 +7,7 @@ using Infrastructure.Auth.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Web.ViewModels.Auth;
 
 namespace Web.Controllers
 {
@@ -40,7 +41,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> Login([FromBody] LoginModel request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authManager.Login(request.Email!, request.Password!);
 
@@ -76,7 +77,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> Register([FromBody] RegisterModel request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await _authManager.RegisterUser(request.Username!, request.FullName!,request.Email!, request.Password!);
 
@@ -190,7 +191,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPassModel request)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPassRequest request)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value; // Validate
             var result = await _authManager.ResetPassword(userId!, request.OldPassword!, request.NewPassword!);
@@ -223,7 +224,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> SendForgotPasswordResetEmail([FromBody] ForgotPassModel request)
+        public async Task<IActionResult> SendForgotPasswordResetEmail([FromBody] ForgotPassRequest request)
         {
             var result = await _authManager.SendForgotPasswordResetEmail(request.Email!);
 
@@ -258,7 +259,7 @@ namespace Web.Controllers
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         [ProducesResponseType(typeof(ProblemDetails), 400)]
         [ProducesResponseType(typeof(ProblemDetails), 500)]
-        public async Task<IActionResult> ResetForgotPassword([FromBody] ResetForgotPassModel request)
+        public async Task<IActionResult> ResetForgotPassword([FromBody] ResetForgotPassRequest request)
         {
             var result = await _authManager.ResetForgotPassword(request.Email!, request.Token!, request.Password!);
 
@@ -326,56 +327,5 @@ namespace Web.Controllers
         [Required] public string Token { get; set; }
         [Required] public DateTime ExpiryDate { get; set; }
     }
-
-    public class RegisterModel
-    {
-        [Required] // Todo: Try moving it to the natural modifier
-        [MinLength(6), MaxLength(16)]
-        public string? Username { get; set; }
-        [Required]
-        [MinLength(1), MaxLength(128)]
-        public string? FullName { get; set; }
-        [Required]
-        [EmailAddress]
-        public string? Email { get; set; }
-        [Required]
-        [MinLength(6)]
-        public string? Password { get; set; }
-    }
     
-    public class LoginModel
-    {
-        [Required] // Todo: Try moving it to the natural modifier
-        [EmailAddress]
-        public string Email { get; set; }
-        [Required]
-        [MinLength(6)]
-        public string? Password { get; set; }
-    }
-
-    public class ForgotPassModel
-    {
-        [Required]
-        [EmailAddress]
-        public string? Email { get; set; }
-    }
-
-    public class ResetPassModel
-    {
-        [Required] [MinLength(6)] public string? OldPassword { get; set; }
-        [Required] [MinLength(6)] public string? NewPassword { get; set; }
-    }
-
-    public class ResetForgotPassModel
-    {
-        [Required] public string? Password { get; set; }
-        [Required] [EmailAddress] public string? Email { get; set; }
-        [Required] public string? Token { get; set; }
-    }
-
-    public class Response
-    {
-        public string? Status { get; set; }
-        public string? Message { get; set; }
-    }
 }

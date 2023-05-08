@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Web.Controllers.Messenger.Chat.ViewModels;
+namespace Web.ViewModels.Chat;
 
 public class GetChatMessagesRequest
 {

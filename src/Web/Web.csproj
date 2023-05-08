@@ -35,8 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts" />
-    <Folder Include="Controllers\Filters" />
     <Folder Include="wwwroot" />
     <Folder Include="wwwroot\assets\images" />
   </ItemGroup>
