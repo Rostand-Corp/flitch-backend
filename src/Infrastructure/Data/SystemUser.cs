@@ -1,8 +1,7 @@
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
-using System.Globalization;
 
-namespace Infrastructure.Auth;
+namespace Infrastructure.Data;
 
 public class SystemUser : IdentityUser<Guid>
 {

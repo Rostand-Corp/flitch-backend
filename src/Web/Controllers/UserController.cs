@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Application.Services;
-using Application.Services.Users.Commands;
+using Application.Users.Commands;
 using Application.Users.Responses;
 using Application.Users.Services;
 using Microsoft.AspNetCore.Authorization;

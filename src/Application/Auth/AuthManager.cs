@@ -1,17 +1,16 @@
-using System.Runtime.InteropServices.JavaScript;
 using System.Security.Claims;
 using System.Web;
+using Application.Auth.Results;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Validators;
-using Infrastructure.Auth.Results;
 using Infrastructure.Data;
+using Infrastructure.Resources;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Infrastructure.Auth;
+namespace Application.Auth;
 
 public class AuthManager : IAuthManager
 {
@@ -114,7 +113,7 @@ public class AuthManager : IAuthManager
         await _emailSender.SendEmailAsync(
             userEmail,
             Resources.EmailConfirmationSubject,
-            string.Format(Resources.EmailConfirmationMessage, emailTokenEncoded));
+            string.Format((string) Resources.EmailConfirmationMessage, emailTokenEncoded));
         
         _logger.LogInformation(
             "Confirmation e-mail has been queued to {UserName} ({Email})",
@@ -246,7 +245,7 @@ public class AuthManager : IAuthManager
         await _emailSender.SendEmailAsync(
             email,
             Resources.EmailPasswordResetSubject,
-            string.Format(Resources.EmailPasswordResetMessage, resetTokenEncoded));
+            string.Format((string) Resources.EmailPasswordResetMessage, resetTokenEncoded));
         
         _logger.LogInformation(
             "Password reset e-mail has been queued to {UserName} ({Email})",

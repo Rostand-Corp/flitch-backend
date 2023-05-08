@@ -1,12 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Application.Services;
-using Application.Services.Users.Commands;
+using Application.Users.Commands;
 using Application.Users.Responses;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Exceptions.User;
 using Domain.Validators;
-using Infrastructure.Auth;
 using Infrastructure.Data;
 using Mapster;
 using MapsterMapper;

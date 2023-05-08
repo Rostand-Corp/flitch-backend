@@ -1,9 +1,9 @@
 using System.Reflection;
 using System.Text;
+using Application.Auth;
 using Application.Chats.Mappings;
 using Domain.Validators;
 using FluentValidation;
-using Infrastructure.Auth;
 using Infrastructure.Data;
 using Infrastructure.Services;
 using Mapster;

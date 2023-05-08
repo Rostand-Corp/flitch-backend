@@ -1,4 +1,4 @@
-using Application.Services.Users.Commands;
+using Application.Users.Commands;
 using Application.Users.Responses;
 
 namespace Application.Users.Services;

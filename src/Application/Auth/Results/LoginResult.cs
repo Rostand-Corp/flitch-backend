@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Identity;
+using Infrastructure.Data;
 
-namespace Infrastructure.Auth.Results;
+namespace Application.Auth.Results;
 
 public abstract class LoginResult
 {

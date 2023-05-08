@@ -1,4 +1,4 @@
-namespace Infrastructure.Auth.Results;
+namespace Application.Auth.Results;
 
 public abstract class ResendEmailConfirmationResult
 {
