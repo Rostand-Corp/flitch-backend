@@ -1,7 +1,7 @@
-using Application.Users.Commands;
-using Application.Users.Responses;
+using Application.DTOs.User.Commands;
+using Application.DTOs.User.Responses;
 
-namespace Application.Users.Services;
+namespace Application.AppServices.User;
 
 public interface IUserAppService
 {

@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Application.Auth.Results;
+using Application.DTOs.Auth.Responses;
 
-namespace Application.Auth;
+namespace Application.AppServices.Auth;
 
 public interface IAuthManager
 {

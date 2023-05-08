@@ -1,6 +1,6 @@
 using Infrastructure.Data;
 
-namespace Application.Auth.Results;
+namespace Application.DTOs.Auth.Responses;
 
 public abstract class LoginResult
 {

@@ -1,4 +1,4 @@
-namespace Application.Chats.Commands;
+namespace Application.DTOs.Chat.Commands;
 
 public class UpdateMessageCommand
 {

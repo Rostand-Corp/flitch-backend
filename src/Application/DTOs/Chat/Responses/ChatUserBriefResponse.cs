@@ -1,6 +1,6 @@
 using Domain.Entities;
 
-namespace Application.Chats.Responses;
+namespace Application.DTOs.Chat.Responses;
 
 public class ChatUserBriefResponse
 {

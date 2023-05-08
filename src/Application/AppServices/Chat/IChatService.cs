@@ -1,7 +1,7 @@
-using Application.Chats.Commands;
-using Application.Chats.Responses;
+using Application.DTOs.Chat.Commands;
+using Application.DTOs.Chat.Responses;
 
-namespace Application.Chats.Services;
+namespace Application.AppServices.Chat;
 
 public interface IChatService
 {

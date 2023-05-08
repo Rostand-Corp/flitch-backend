@@ -1,4 +1,4 @@
-namespace Application.Users.Commands;
+namespace Application.DTOs.User.Commands;
 
 public class UpdateSelfCommand
 {

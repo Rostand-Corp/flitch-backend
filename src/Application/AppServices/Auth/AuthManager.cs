@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using System.Web;
-using Application.Auth.Results;
-using Domain.Entities;
+using Application.DTOs.Auth.Responses;
 using Domain.Exceptions;
 using Domain.Validators;
 using Infrastructure.Data;
@@ -10,7 +9,7 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Auth;
+namespace Application.AppServices.Auth;
 
 public class AuthManager : IAuthManager
 {
@@ -410,7 +409,7 @@ public class AuthManager : IAuthManager
 
     private async Task<IdentityResult> RegisterInSubsystems(SystemUser user)
     {
-        var messengerUser = new User()
+        var messengerUser = new Domain.Entities.User()
         {
             DisplayName = user.UserName,
             FullName = user.FullName,

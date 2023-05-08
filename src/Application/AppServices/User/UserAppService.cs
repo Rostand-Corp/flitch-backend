@@ -1,17 +1,15 @@
-using System.Diagnostics.CodeAnalysis;
-using Application.Services;
-using Application.Users.Commands;
-using Application.Users.Responses;
-using Domain.Entities;
+using Application.DTOs.User.Commands;
+using Application.DTOs.User.Responses;
 using Domain.Exceptions;
 using Domain.Exceptions.User;
 using Domain.Validators;
 using Infrastructure.Data;
+using Infrastructure.Services;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Users.Services;
+namespace Application.AppServices.User;
 
 public class UserAppService : IUserAppService
 {
@@ -48,7 +46,7 @@ public class UserAppService : IUserAppService
 
         if (command.Amount <= 0) throw new FlitchException("User.Pagination", "You must retrieve one or more records");
 
-        IQueryable<User> query = _db.Users.AsNoTracking().OrderByDescending(u => u.Id);
+        IQueryable<Domain.Entities.User> query = _db.Users.AsNoTracking().OrderByDescending(u => u.Id);
         
         if (!string.IsNullOrEmpty(command.SearchWord))
         {

@@ -1,18 +1,16 @@
-using System.Net;
-using Application.Chats.Commands;
-using Application.Chats.Responses;
-using Application.Services;
+using Application.DTOs.Chat.Commands;
+using Application.DTOs.Chat.Responses;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Exceptions.User;
 using FluentValidation;
 using Infrastructure.Data;
-using Mapster;
+using Infrastructure.Services;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using ValidationException = Domain.Exceptions.ValidationException;
 
-namespace Application.Chats.Services;
+namespace Application.AppServices.Chat;
 
 public class ChatService : IChatService
 {
@@ -63,7 +61,7 @@ public class ChatService : IChatService
 
         if (chatAlreadyExists) throw new AlreadyExistsException("Chat", "This chat already exists.");
 
-        var chat = new Chat
+        var chat = new Domain.Entities.Chat
         {
             Id = Guid.NewGuid(), // ... .. . . ..  check this
             Type = ChatType.Private,
@@ -130,7 +128,7 @@ public class ChatService : IChatService
         }
 
         users.Add(creatorUser);
-        var chat = new Chat
+        var chat = new Domain.Entities.Chat
         {
             Id = Guid.NewGuid(),
             Type = ChatType.Group,

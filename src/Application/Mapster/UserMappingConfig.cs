@@ -1,8 +1,8 @@
-using Application.Users.Responses;
+using Application.DTOs.User.Responses;
 using Domain.Entities;
 using Mapster;
 
-namespace Application.Users;
+namespace Application.Mapster;
 
 public class UserMappingConfig : IRegister
 {

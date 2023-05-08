@@ -1,6 +1,4 @@
-using Domain.Entities;
-
-namespace Application.Chats.Commands;
+namespace Application.DTOs.Chat.Commands;
 
 public class GetMyChatsBriefViewsCommand
 {

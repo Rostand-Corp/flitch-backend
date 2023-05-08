@@ -1,4 +1,4 @@
-namespace Application.Users.Responses;
+namespace Application.DTOs.User.Responses;
 
 public class UserResponse
 {
