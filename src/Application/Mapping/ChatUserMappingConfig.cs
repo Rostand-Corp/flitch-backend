@@ -2,7 +2,7 @@ using Application.DTOs.Chat.Responses;
 using Domain.Entities;
 using Mapster;
 
-namespace Application.Mapster;
+namespace Application.Mapping;
 
 public class ChatUserMappingConfig : IRegister
 {

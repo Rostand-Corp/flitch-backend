@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text;
 using Application.AppServices.Auth;
-using Application.Mapster;
+using Application.Mapping;
 using Domain.Validators;
 using FluentValidation;
 using Infrastructure.Data;
