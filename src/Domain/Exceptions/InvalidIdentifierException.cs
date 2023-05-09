@@ -4,7 +4,13 @@ namespace Domain.Exceptions;
 
 public class InvalidIdentifierException : FlitchException
 {
-    public InvalidIdentifierException() : base("Flitch.Id", "The specified identifier is invalid", HttpStatusCode.BadRequest)
+    public InvalidIdentifierException() 
+        : base(
+            "Invalid identifier specified.",
+            "Flitch.Id", 
+            "The specified identifier is invalid", 
+            HttpStatusCode.BadRequest
+            )
     {
     }
 }

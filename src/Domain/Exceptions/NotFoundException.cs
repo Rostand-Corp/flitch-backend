@@ -4,7 +4,13 @@ namespace Domain.Exceptions;
 
 public class NotFoundException : FlitchException
 {
-    public NotFoundException(string errorType, string message) : base(errorType, message, HttpStatusCode.NotFound)
+    public NotFoundException(string errorType, string message) 
+        : base(
+            "Specified resource was not found.",
+            errorType, 
+            message,
+            HttpStatusCode.NotFound
+            )
     {
     }
 }

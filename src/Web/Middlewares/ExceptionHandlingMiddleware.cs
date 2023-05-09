@@ -44,7 +44,7 @@ public class ExceptionHandlingMiddleware
             var validationProblemDetails = new ValidationProblemDetails(ve.Errors)
             {
                 Type = e.ErrorType,
-                Title = "Validation exception",
+                Title = e.Title,
                 Status = (int) e.HttpStatusCode,
                 Detail = "One or more validation problems have occurred.",
             };
@@ -58,7 +58,7 @@ public class ExceptionHandlingMiddleware
             {
                 Status = (int) e.HttpStatusCode,
                 Type = e.ErrorType,
-                Title = "Flitch exception has occurred.",
+                Title = e.Title,
                 Detail = e.Message,
             };
 
