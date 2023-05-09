@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using Application.Services;
-using Application.Services.Users.Commands;
-using Application.Users.Responses;
-using Application.Users.Services;
+using Application.AppServices.User;
+using Application.DTOs.User.Commands;
+using Application.DTOs.User.Responses;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.ViewModels.User;

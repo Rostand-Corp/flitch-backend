@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using Application.Chats.Services;
-using Application.Services;
-using Application.Users.Services;
+using Application.AppServices.Chat;
+using Application.AppServices.User;
 using Infrastructure.Data;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Web;
 using Web.Middlewares;

@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Application.Chats.Commands;
+using Application.DTOs.Chat.Commands;
 
 namespace Web.ViewModels.Chat;
 

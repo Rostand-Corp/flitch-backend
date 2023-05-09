@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Infrastructure {
+namespace Infrastructure.Resources {
     using System;
     
     
@@ -21,7 +21,7 @@ namespace Infrastructure {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -35,7 +35,7 @@ namespace Infrastructure {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Infrastructure.Resources.Resources", typeof(Resources).Assembly);
@@ -50,7 +50,7 @@ namespace Infrastructure {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -62,7 +62,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The e-mail is already confirmed.
         /// </summary>
-        internal static string EmailAlreadyConfirmed {
+        public static string EmailAlreadyConfirmed {
             get {
                 return ResourceManager.GetString("EmailAlreadyConfirmed", resourceCulture);
             }
@@ -71,7 +71,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Please confirm your email: {0}.
         /// </summary>
-        internal static string EmailConfirmationMessage {
+        public static string EmailConfirmationMessage {
             get {
                 return ResourceManager.GetString("EmailConfirmationMessage", resourceCulture);
             }
@@ -80,7 +80,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Confirmation e-mail has been resent.
         /// </summary>
-        internal static string EmailConfirmationResendSuccess {
+        public static string EmailConfirmationResendSuccess {
             get {
                 return ResourceManager.GetString("EmailConfirmationResendSuccess", resourceCulture);
             }
@@ -89,7 +89,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to e-Mail confirmation : Flitch.
         /// </summary>
-        internal static string EmailConfirmationSubject {
+        public static string EmailConfirmationSubject {
             get {
                 return ResourceManager.GetString("EmailConfirmationSubject", resourceCulture);
             }
@@ -98,7 +98,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The e-mail has been successfully confirmed.
         /// </summary>
-        internal static string EmailConfirmationSuccess {
+        public static string EmailConfirmationSuccess {
             get {
                 return ResourceManager.GetString("EmailConfirmationSuccess", resourceCulture);
             }
@@ -107,7 +107,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Follow this link to reset your password: {0}.
         /// </summary>
-        internal static string EmailPasswordResetMessage {
+        public static string EmailPasswordResetMessage {
             get {
                 return ResourceManager.GetString("EmailPasswordResetMessage", resourceCulture);
             }
@@ -116,7 +116,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Password reset email has been queued. If you cannot see an email then consider requesting new message.
         /// </summary>
-        internal static string EmailPasswordResetMessageSent {
+        public static string EmailPasswordResetMessageSent {
             get {
                 return ResourceManager.GetString("EmailPasswordResetMessageSent", resourceCulture);
             }
@@ -125,7 +125,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Password reset : Flitch.
         /// </summary>
-        internal static string EmailPasswordResetSubject {
+        public static string EmailPasswordResetSubject {
             get {
                 return ResourceManager.GetString("EmailPasswordResetSubject", resourceCulture);
             }
@@ -134,7 +134,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The user with such e-mail already exists.
         /// </summary>
-        internal static string EmailTaken {
+        public static string EmailTaken {
             get {
                 return ResourceManager.GetString("EmailTaken", resourceCulture);
             }
@@ -143,7 +143,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to e-mail was not confirmed by the user.
         /// </summary>
-        internal static string EmailWasNotConfirmed {
+        public static string EmailWasNotConfirmed {
             get {
                 return ResourceManager.GetString("EmailWasNotConfirmed", resourceCulture);
             }
@@ -152,16 +152,16 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Password has been successfully changed.
         /// </summary>
-        internal static string PasswordChangedSuccess {
+        public static string PasswordChangedSuccess {
             get {
                 return ResourceManager.GetString("PasswordChangedSuccess", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified passwordi is invalid.
+        ///   Looks up a localized string similar to The specified password is invalid.
         /// </summary>
-        internal static string PasswordInvalid {
+        public static string PasswordInvalid {
             get {
                 return ResourceManager.GetString("PasswordInvalid", resourceCulture);
             }
@@ -170,7 +170,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Password has been successfully reset.
         /// </summary>
-        internal static string PasswordResetSuccess {
+        public static string PasswordResetSuccess {
             get {
                 return ResourceManager.GetString("PasswordResetSuccess", resourceCulture);
             }
@@ -179,7 +179,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The e-mail must be specified.
         /// </summary>
-        internal static string SpecifyEmail {
+        public static string SpecifyEmail {
             get {
                 return ResourceManager.GetString("SpecifyEmail", resourceCulture);
             }
@@ -188,7 +188,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The confirmation token must be specified.
         /// </summary>
-        internal static string SpecifyEmailConfirmationToken {
+        public static string SpecifyEmailConfirmationToken {
             get {
                 return ResourceManager.GetString("SpecifyEmailConfirmationToken", resourceCulture);
             }
@@ -197,7 +197,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to New password must be specified.
         /// </summary>
-        internal static string SpecifyNewPassword {
+        public static string SpecifyNewPassword {
             get {
                 return ResourceManager.GetString("SpecifyNewPassword", resourceCulture);
             }
@@ -206,7 +206,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Old password must be specified.
         /// </summary>
-        internal static string SpecifyOldPassword {
+        public static string SpecifyOldPassword {
             get {
                 return ResourceManager.GetString("SpecifyOldPassword", resourceCulture);
             }
@@ -215,7 +215,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The password must be specified.
         /// </summary>
-        internal static string SpecifyPassword {
+        public static string SpecifyPassword {
             get {
                 return ResourceManager.GetString("SpecifyPassword", resourceCulture);
             }
@@ -224,7 +224,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to Reset token must be specified.
         /// </summary>
-        internal static string SpecifyResetToken {
+        public static string SpecifyResetToken {
             get {
                 return ResourceManager.GetString("SpecifyResetToken", resourceCulture);
             }
@@ -233,7 +233,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The username must be specified.
         /// </summary>
-        internal static string SpecifyUserName {
+        public static string SpecifyUserName {
             get {
                 return ResourceManager.GetString("SpecifyUserName", resourceCulture);
             }
@@ -242,7 +242,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The user doesn&apos;t exist.
         /// </summary>
-        internal static string UserDoesntExist {
+        public static string UserDoesntExist {
             get {
                 return ResourceManager.GetString("UserDoesntExist", resourceCulture);
             }
@@ -251,7 +251,7 @@ namespace Infrastructure {
         /// <summary>
         ///   Looks up a localized string similar to The user with such username already exists.
         /// </summary>
-        internal static string UserNameTaken {
+        public static string UserNameTaken {
             get {
                 return ResourceManager.GetString("UserNameTaken", resourceCulture);
             }
