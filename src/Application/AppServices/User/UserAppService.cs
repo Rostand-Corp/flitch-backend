@@ -72,13 +72,26 @@ public class UserAppService : IUserAppService
         var user = await _db.Users.FindAsync(_currentUser.MessengerUserId);
         if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
 
+        if (user.DisplayName == command.DisplayName)
+        {
+            throw new ValidationException("User", new Dictionary<string, string[]>()
+            {
+                ["Name"] = new []{"You have specified a display name that is already used by this account."}
+            });
+        }
+        
         user.DisplayName = command.DisplayName;
         user.FullName = command.FullName;
         user.Status = command.Status;
 
+        if (_db.Users.Any(u => u.DisplayName == command.DisplayName))
+        {
+            throw new AlreadyExistsException("User.Name", "User with such nickname already exists.");
+        }
+
         var validationResult = new UserValidator().Validate(user);
         if (!validationResult.IsValid) throw new ValidationException("User", validationResult.ToDictionary());
-        
+
         await _db.SaveChangesAsync();
 
         return _mapper.Map<UserResponse>(user);
