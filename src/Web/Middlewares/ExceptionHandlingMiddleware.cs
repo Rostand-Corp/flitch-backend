@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using Web.Services;
 
 namespace Web.Middlewares;
 
@@ -37,7 +38,7 @@ public class ExceptionHandlingMiddleware
         _logger.LogError(e, e.Message);
 
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)e.HttpStatusCode;
+        context.Response.StatusCode = (int) HttpStatusCodeResolver.Resolve(e);
 
         if (e is ValidationException ve)
         {
@@ -45,7 +46,7 @@ public class ExceptionHandlingMiddleware
             {
                 Type = e.ErrorType,
                 Title = e.Title,
-                Status = (int) e.HttpStatusCode,
+                Status = (int) HttpStatusCodeResolver.Resolve(e),
                 Detail = "One or more validation problems have occurred.",
             };
 
@@ -56,7 +57,7 @@ public class ExceptionHandlingMiddleware
         {
             var problemDetails = new ProblemDetails
             {
-                Status = (int) e.HttpStatusCode,
+                Status = (int) HttpStatusCodeResolver.Resolve(e),
                 Type = e.ErrorType,
                 Title = e.Title,
                 Detail = e.Message,

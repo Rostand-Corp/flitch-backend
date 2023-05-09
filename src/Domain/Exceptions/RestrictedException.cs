@@ -8,8 +8,7 @@ public class RestrictedException : FlitchException
         : base(
             "You were restricted from accessing this resource.",
             errorType,
-            message,
-            httpStatusCode
+            message
             )
     {
     }

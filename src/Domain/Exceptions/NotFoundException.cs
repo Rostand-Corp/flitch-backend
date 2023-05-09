@@ -8,9 +8,8 @@ public class NotFoundException : FlitchException
         : base(
             "Specified resource was not found.",
             errorType, 
-            message,
-            HttpStatusCode.NotFound
-            )
+            message
+        )
     {
     }
 }

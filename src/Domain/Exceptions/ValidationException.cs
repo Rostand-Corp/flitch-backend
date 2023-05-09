@@ -8,8 +8,8 @@ public class ValidationException : FlitchException
         : base(
             "Validation problem has occured.",
             domain + ".Validation",
-            "Validation problem has occurred.",
-            HttpStatusCode.BadRequest)
+            "Validation problem has occurred."
+            )
     {
         Errors = errors;
     }

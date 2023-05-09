@@ -8,9 +8,8 @@ public class AlreadyExistsException : FlitchException
         : base(
             "The resource already exists.",
             errorType, 
-            message, 
-            HttpStatusCode.Conflict
-            )
+            message
+        )
     {
     }
 }

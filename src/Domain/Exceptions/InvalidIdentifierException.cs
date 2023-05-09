@@ -8,8 +8,7 @@ public class InvalidIdentifierException : FlitchException
         : base(
             "Invalid identifier specified.",
             "Flitch.Id", 
-            "The specified identifier is invalid", 
-            HttpStatusCode.BadRequest
+            "The specified identifier is invalid"
             )
     {
     }
