@@ -1,7 +1,6 @@
 using Application.DTOs.User.Commands;
 using Application.DTOs.User.Responses;
 using Domain.Exceptions;
-using Domain.Exceptions.User;
 using Domain.Validators;
 using Infrastructure.Data;
 using Infrastructure.Services;
@@ -35,7 +34,7 @@ public class UserAppService : IUserAppService
 
         var user = await _db.Users.FindAsync(userId);
         
-        if (user is null) throw new UserNotFoundException();
+        if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
 
         return _mapper.Map<UserResponse>(user);
     }
@@ -44,7 +43,7 @@ public class UserAppService : IUserAppService
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        if (command.Amount <= 0) throw new FlitchException("User.Pagination", "You must retrieve one or more records");
+        if (command.Amount <= 0) throw new FlitchException("Pagination problem","User.Pagination", "You must retrieve one or more records");
 
         IQueryable<Domain.Entities.User> query = _db.Users.AsNoTracking().OrderByDescending(u => u.Id);
         
@@ -71,7 +70,7 @@ public class UserAppService : IUserAppService
         ArgumentNullException.ThrowIfNull(command.Status);
 
         var user = await _db.Users.FindAsync(_currentUser.MessengerUserId);
-        if (user is null) throw new UserNotFoundException();
+        if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
 
         user.DisplayName = command.DisplayName;
         user.FullName = command.FullName;
@@ -93,7 +92,7 @@ public class UserAppService : IUserAppService
         
         var user = await _db.Users.FindAsync(userId);
         
-        if (user is null) throw new UserNotFoundException();
+        if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();

@@ -2,7 +2,6 @@ using Application.DTOs.Chat.Commands;
 using Application.DTOs.Chat.Responses;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Exceptions.User;
 using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Services;
@@ -162,7 +161,7 @@ public class ChatService : IChatService
             });
 
         var user = await _db.Users.FindAsync(_currentUser.MessengerUserId)
-                   ?? throw new UserNotFoundException();
+                   ?? throw new NotFoundException("User.NotFound", "The specified user was not found.");
 
         var query = _db.Chats
             .AsNoTracking()
