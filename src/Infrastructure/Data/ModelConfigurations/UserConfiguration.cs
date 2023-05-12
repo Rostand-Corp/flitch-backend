@@ -1,5 +1,4 @@
 using Domain.Entities;
-using Infrastructure.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

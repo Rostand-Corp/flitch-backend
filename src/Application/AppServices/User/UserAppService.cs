@@ -1,0 +1,115 @@
+using Application.DTOs.User.Commands;
+using Application.DTOs.User.Responses;
+using Domain.Exceptions;
+using Domain.Validators;
+using Infrastructure.Data;
+using Infrastructure.Services;
+using Mapster;
+using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
+
+namespace Application.AppServices.User;
+
+public class UserAppService : IUserAppService
+{
+    private readonly FlitchDbContext _db;
+    private readonly IMapper _mapper;
+    private readonly ICurrentUserService _currentUser;
+
+    public UserAppService(FlitchDbContext db, IMapper mapper, ICurrentUserService currentUserService)
+    {
+        _db = db;
+        _mapper = mapper;
+        _currentUser = currentUserService;
+    }
+    
+    // The user is created initially in the AuthManager. At this point there is no need to separate this logic.
+
+    
+    public async Task<UserResponse> GetUserById(string id)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(id);
+
+        if (!Guid.TryParse(id, out var userId)) throw new InvalidIdentifierException();
+
+        var user = await _db.Users.FindAsync(userId);
+        
+        if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
+
+        return _mapper.Map<UserResponse>(user);
+    }
+
+    public async Task<IEnumerable<UserResponse>> GetUsers(GetUsersCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+
+        if (command.Amount <= 0) throw new FlitchException("Pagination problem","User.Pagination", "You must retrieve one or more records");
+
+        IQueryable<Domain.Entities.User> query = _db.Users.AsNoTracking().OrderByDescending(u => u.Id);
+        
+        if (!string.IsNullOrEmpty(command.SearchWord))
+        {
+            query = query.Where(u => u.DisplayName.ToLower().Contains(command.SearchWord.ToLower()));
+        }
+        
+        var users = await query
+            .Skip((command.PageNumber - 1) * command.Amount)
+            .Take(command.Amount)
+            .ProjectToType<UserResponse>()
+            .ToListAsync();
+
+        return users; // TODO: Add paged list?
+    }
+
+    public async Task<UserResponse> UpdateUser(UpdateSelfCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        
+        ArgumentNullException.ThrowIfNull(command.DisplayName);
+        ArgumentNullException.ThrowIfNull(command.FullName);
+        ArgumentNullException.ThrowIfNull(command.Status);
+
+        var user = await _db.Users.FindAsync(_currentUser.MessengerUserId);
+        if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
+
+        if (user.DisplayName == command.DisplayName)
+        {
+            throw new ValidationException("User", new Dictionary<string, string[]>()
+            {
+                ["Name"] = new []{"You have specified a display name that is already used by this account."}
+            });
+        }
+        
+        user.DisplayName = command.DisplayName;
+        user.FullName = command.FullName;
+        user.Status = command.Status;
+
+        if (_db.Users.Any(u => u.DisplayName == command.DisplayName))
+        {
+            throw new AlreadyExistsException("User.Name", "User with such nickname already exists.");
+        }
+
+        var validationResult = new UserValidator().Validate(user);
+        if (!validationResult.IsValid) throw new ValidationException("User", validationResult.ToDictionary());
+
+        await _db.SaveChangesAsync();
+
+        return _mapper.Map<UserResponse>(user);
+    }
+
+    public async Task<UserResponse> DeleteUser(string id)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(id);
+        
+        if (!Guid.TryParse(id, out var userId)) throw new InvalidIdentifierException();
+        
+        var user = await _db.Users.FindAsync(userId);
+        
+        if (user is null) throw new NotFoundException("User.NotFound", "The specified user was not found.");
+
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        
+        return _mapper.Map<UserResponse>(user);
+    }
+}

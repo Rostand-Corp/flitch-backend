@@ -1,7 +1,7 @@
 using System.Net;
-using Application.Chats.Commands;
-using Application.Chats.Responses;
-using Application.Chats.Services;
+using Application.AppServices.Chat;
+using Application.DTOs.Chat.Commands;
+using Application.DTOs.Chat.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.ViewModels.Chat;
