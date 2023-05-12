@@ -20,4 +20,13 @@ to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
+## Launching the App with Docker
+To launch the app with Docker, follow these steps:
+
+1. Install Docker on your machine.
+2. Clone this repository.
+3. In the root directory of the repository, create a .env file with the necessary environment variables. Alternatively, you can set the environment variables directly in the docker-compose.yml file or pass them from using -e argument.
+4. Open a terminal window and navigate to the root directory of the repository.
+5. Run docker-compose up to start the app.
+
 ## License
