@@ -1,5 +1,6 @@
 using Application.DTOs.Chat.Commands;
 using Application.DTOs.Chat.Responses;
+using Application.Hubs;
 using Domain.Entities;
 using Domain.Exceptions;
 using FluentValidation;
@@ -17,13 +18,15 @@ public class ChatService : IChatService
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUser;
     private readonly IValidator<Message> _messageValidator;
+    private readonly MessengerHub _messengerHub;
 
-    public ChatService(FlitchDbContext db, IMapper mapper, ICurrentUserService currentUserService, IValidator<Message> messageValidator)
+    public ChatService(FlitchDbContext db, IMapper mapper, ICurrentUserService currentUserService, IValidator<Message> messageValidator, MessengerHub messengerHub)
     {
         _db = db;
         _mapper = mapper;
         _currentUser = currentUserService;
         _messageValidator = messageValidator;
+        _messengerHub = messengerHub;
     }
     
     public async Task<ChatFullResponse> CreatePrivateChat(CreatePrivateChatCommand command) // need complete error handling support
@@ -82,8 +85,11 @@ public class ChatService : IChatService
         var added =  _db.Chats.Add(chat);
         
         await _db.SaveChangesAsync();
-
-        return _mapper.Map<ChatFullResponse>(chat);
+        
+        var response = _mapper.Map<ChatFullResponse>(chat);
+        await _messengerHub.CreateNewChat(new[] {user1.Id, user2.Id}, response);
+        
+        return response;
     }
 
     public async Task<ChatFullResponse> CreateGroupChat(CreateGroupChatCommand command)
@@ -141,8 +147,11 @@ public class ChatService : IChatService
         _db.Chats.Add(chat);
 
         await _db.SaveChangesAsync();
-
-        return _mapper.Map<ChatFullResponse>(chat);
+        
+        var response = _mapper.Map<ChatFullResponse>(chat);
+        await _messengerHub.CreateNewChat(chat.Participants.Select(p=>p.User.Id), response);
+        
+        return response;
     }
 
     public async Task<IEnumerable<ChatBriefViewResponse>> GetMyChats(GetMyChatsBriefViewsCommand command)
@@ -313,7 +322,10 @@ public class ChatService : IChatService
 
         await _db.SaveChangesAsync();
 
-        return _mapper.Map<ChatFullResponse>(chat);
+        var response = _mapper.Map<ChatFullResponse>(chat);
+        await _messengerHub.UpdateChatInfo(chat.Id, response);
+
+        return response;
     }
 
     public async Task<MessageResponse> SendMessage(SendMessageCommand command)
@@ -369,7 +381,9 @@ public class ChatService : IChatService
 
             await transaction.CommitAsync();
 
-            return _mapper.Map<MessageResponse>(message);
+            var response = _mapper.Map<MessageResponse>(message);
+            await _messengerHub.SendMessageInChat(chat.Id, response);
+            return response;
         }
         
         catch (Exception ex)
@@ -424,7 +438,9 @@ public class ChatService : IChatService
 
         await _db.SaveChangesAsync();
 
-        return _mapper.Map<MessageResponse>(updatedMessage);
+        var response = _mapper.Map<MessageResponse>(updatedMessage);
+        await _messengerHub.UpdateMessageInChat(chat.Id, response);
+        return response;
     }
 
     public async Task<MessageResponse> DeleteMessage(DeleteMessageCommand command)
@@ -479,7 +495,8 @@ public class ChatService : IChatService
         _db.Update(deletedMessage); // maybe making things a little bit more explicit, but is not needed at all
 
         await _db.SaveChangesAsync();
-
+        
+        await _messengerHub.DeleteMessageInChat(chat.Id, deletedMessage.Id);
         return _mapper.Map<MessageResponse>(deletedMessage);
     }
 
@@ -510,10 +527,10 @@ public class ChatService : IChatService
         currentUser.IsActive = false;
 
         await _db.SaveChangesAsync();
-        
+
+        if (_currentUser.MessengerUserId != null)
+            await _messengerHub.LeaveChatForUser(chat.Id, _currentUser.MessengerUserId.Value);
         return _mapper.Map<ChatUserBriefResponse>(currentUser);
-
-
     }
 
     public async Task<ChatUserBriefResponse> AddUserToGroupChat(AddUserToGroupChatCommand command)
@@ -570,7 +587,9 @@ public class ChatService : IChatService
         existingChatUser.IsActive = true;
 
         await _db.SaveChangesAsync();
-
-        return _mapper.Map<ChatUserBriefResponse>(existingChatUser);
+        
+        var response = _mapper.Map<ChatUserBriefResponse>(existingChatUser);
+        await _messengerHub.AddNewMemberToChat(chat.Id, existingChatUser.UserId, response);
+        return response;
     }
 }
