@@ -50,7 +50,8 @@ builder.Services.AddCors(options =>
         builder =>
             builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
 builder.Services.AddSignalR();
