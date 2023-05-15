@@ -9,12 +9,17 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.5.1" />
     <PackageReference Include="Mapster" Version="7.3.0" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="7.0.4" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="7.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup> 
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+  <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

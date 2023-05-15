@@ -20,10 +20,10 @@ public class CurrentUserService : ICurrentUserService
 
     public Guid? MessengerUserId => _currentMessengerUserId ??= Guid.Parse(GetUser().FindFirst("msngrUserId")?.Value
                                                                            ?? throw new InvalidOperationException());
+    
+    public string? ConnectionId { get; private set; }
 
     public bool IsInRole(string role) => GetUser().IsInRole(role);
-    
-    // public string? ConnectionId { get; private set; }
 
     public ClaimsPrincipal GetUser()
     {
@@ -33,5 +33,10 @@ public class CurrentUserService : ICurrentUserService
     public void SetUser(ClaimsPrincipal user)
     {
         _user = user;
+    }
+
+    public void SetConnectionId(string connectionId)
+    {
+        ConnectionId = connectionId;
     }
 }

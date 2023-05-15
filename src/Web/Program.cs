@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Application.AppServices.Chat;
 using Application.AppServices.User;
+using Application.Hubs;
 using Infrastructure.Data;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +53,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
@@ -78,5 +81,6 @@ app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
+app.MapHub<MessengerHub>("/chats").RequireCors("AllowLocalhost");
 
 app.Run();
