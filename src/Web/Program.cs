@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Application.AppServices.Chat;
 using Application.AppServices.User;
+using Application.Hubs;
 using Infrastructure.Data;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -20,8 +21,8 @@ builder.Configuration.AddConfiguration(configuration);
 
 builder.Services.AddDbContext<FlitchDbContext>(c =>
     c.UseNpgsql(
-        builder.Configuration["POSTGRESQLCONNSTR_ConnStr"])
-);
+        builder.Configuration["POSTGRESQLCONNSTR_ConnStr"]
+    ));
 
 builder.Services.AddFlitchAuth(builder.Configuration);
 builder.Services.AddFlitchEmailing(builder.Configuration);
@@ -29,6 +30,7 @@ builder.Services.AddFlitchEmailing(builder.Configuration);
 builder.Services.AddTransient<ICurrentUserService, CurrentUserService>();
 builder.Services.AddTransient<IUserAppService, UserAppService>();
 builder.Services.AddTransient<IChatService, ChatService>();
+builder.Services.AddSingleton<IUserConnectionMap<Guid>, UserConnectionMap<Guid>>();
 
 builder.Services.AddMappings();
 builder.Services.AddValidation();
@@ -49,7 +51,14 @@ builder.Services.AddCors(options =>
         builder =>
             builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
+
+builder.Services.AddSignalR().AddHubOptions<MessengerHub>(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.ClientTimeoutInterval = TimeSpan.FromHours(2);
 });
 
 var app = builder.Build();
@@ -78,5 +87,6 @@ app.UseAuthorization();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
+app.MapHub<MessengerHub>("/chats").RequireCors("AllowLocalhost");
 
 app.Run();
