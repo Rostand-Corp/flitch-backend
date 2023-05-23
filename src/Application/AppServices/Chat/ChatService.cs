@@ -620,7 +620,7 @@ public class ChatService : IChatService
 
         if (_currentUser.MessengerUserId != null)
         {
-            var addedUserConnections = _connections.GetConnections(_currentUser.MessengerUserId.Value);        // Todo: null check?
+            var addedUserConnections = _connections.GetConnections(_currentUser.MessengerUserId.Value);
         
             foreach(var connection in addedUserConnections)
                 await _messengerHub.Groups.AddToGroupAsync(connection, chat.Id.ToString());
