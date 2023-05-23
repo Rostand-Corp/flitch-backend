@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Application.DTOs.Chat.Commands;
 using Application.DTOs.Chat.Responses;
 using Application.Hubs;
@@ -7,6 +8,8 @@ using FluentValidation;
 using Infrastructure.Data;
 using Infrastructure.Services;
 using MapsterMapper;
+using Microsoft.AspNet.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ValidationException = Domain.Exceptions.ValidationException;
 
@@ -18,15 +21,17 @@ public class ChatService : IChatService
     private readonly IMapper _mapper;
     private readonly ICurrentUserService _currentUser;
     private readonly IValidator<Message> _messageValidator;
-    private readonly MessengerHub _messengerHub;
+    private readonly IHubContext<MessengerHub, IMessengerHub> _messengerHub;
+    private readonly IUserConnectionMap<Guid> _connections;
 
-    public ChatService(FlitchDbContext db, IMapper mapper, ICurrentUserService currentUserService, IValidator<Message> messageValidator, MessengerHub messengerHub)
+    public ChatService(FlitchDbContext db, IMapper mapper, ICurrentUserService currentUserService, IValidator<Message> messageValidator, IHubContext<MessengerHub, IMessengerHub> messengerHub, IUserConnectionMap<Guid> connections)
     {
         _db = db;
         _mapper = mapper;
         _currentUser = currentUserService;
         _messageValidator = messageValidator;
         _messengerHub = messengerHub;
+        _connections = connections;
     }
     
     public async Task<ChatFullResponse> CreatePrivateChat(CreatePrivateChatCommand command) // need complete error handling support
@@ -87,8 +92,21 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
         
         var response = _mapper.Map<ChatFullResponse>(chat);
-        await _messengerHub.CreateNewChat(new[] {user1.Id, user2.Id}, response);
+
+        var user1Connections = _connections.GetConnections(_currentUser.MessengerUserId.Value).ToImmutableArray();
+        foreach (var connection in user1Connections)
+        {
+            await _messengerHub.Groups.AddToGroupAsync(connection, chat.Id.ToString());
+        }
         
+        var user2Connections = _connections.GetConnections(user2.Id).ToImmutableArray();
+        foreach (var connection in user2Connections)
+        {
+            await _messengerHub.Groups.AddToGroupAsync(connection, chat.Id.ToString());
+        }
+
+        await _messengerHub.Clients.Group(chat.Id.ToString()).NewChatCreated(chat.Id, response);
+
         return response;
     }
 
@@ -149,8 +167,16 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
         
         var response = _mapper.Map<ChatFullResponse>(chat);
-        await _messengerHub.CreateNewChat(chat.Participants.Select(p=>p.User.Id), response);
+
+        // We retrieve all the connections of added users that are on-line and then add them to the SignalR group so we can notify them about new chat
+        var userConnections = chat.Participants.SelectMany(p => _connections.GetConnections(p.UserId));
+        foreach (var connection in userConnections)
+        {
+            await _messengerHub.Groups.AddToGroupAsync(connection, chat.Id.ToString());
+        }
         
+        await _messengerHub.Clients.Group(chat.Id.ToString()).NewChatCreated(chat.Id, response);
+
         return response;
     }
 
@@ -323,7 +349,8 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
 
         var response = _mapper.Map<ChatFullResponse>(chat);
-        await _messengerHub.UpdateChatInfo(chat.Id, response);
+        
+        await _messengerHub.Clients.Group(chat.Id.ToString()).ChatUpdated(response);
 
         return response;
     }
@@ -382,7 +409,7 @@ public class ChatService : IChatService
             await transaction.CommitAsync();
 
             var response = _mapper.Map<MessageResponse>(message);
-            await _messengerHub.SendMessageInChat(chat.Id, response);
+            await _messengerHub.Clients.Group(chat.Id.ToString()).MessageReceived(chat.Id, response);
             return response;
         }
         
@@ -439,7 +466,7 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
 
         var response = _mapper.Map<MessageResponse>(updatedMessage);
-        await _messengerHub.UpdateMessageInChat(chat.Id, response);
+        await _messengerHub.Clients.Group(chat.Id.ToString()).MessageUpdated(chat.Id, response);
         return response;
     }
 
@@ -496,7 +523,7 @@ public class ChatService : IChatService
 
         await _db.SaveChangesAsync();
         
-        await _messengerHub.DeleteMessageInChat(chat.Id, deletedMessage.Id);
+        await _messengerHub.Clients.Group(chat.Id.ToString()).MessageDeleted(chat.Id, deletedMessage.Id);
         return _mapper.Map<MessageResponse>(deletedMessage);
     }
 
@@ -529,7 +556,8 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
 
         if (_currentUser.MessengerUserId != null)
-            await _messengerHub.LeaveChatForUser(chat.Id, _currentUser.MessengerUserId.Value);
+            await _messengerHub.Clients.Group(chat.Id.ToString()).UserLeftChat(chat.Id, _currentUser.MessengerUserId.Value);
+        await _messengerHub.Groups.RemoveFromGroupAsync(_currentUser.ConnectionId, chat.Id.ToString());
         return _mapper.Map<ChatUserBriefResponse>(currentUser);
     }
 
@@ -589,7 +617,17 @@ public class ChatService : IChatService
         await _db.SaveChangesAsync();
         
         var response = _mapper.Map<ChatUserBriefResponse>(existingChatUser);
-        await _messengerHub.AddNewMemberToChat(chat.Id, existingChatUser.UserId, response);
+
+        if (_currentUser.MessengerUserId != null)
+        {
+            var addedUserConnections = _connections.GetConnections(_currentUser.MessengerUserId.Value);        // Todo: null check?
+        
+            foreach(var connection in addedUserConnections)
+                await _messengerHub.Groups.AddToGroupAsync(connection, chat.Id.ToString());
+        
+            await _messengerHub.Clients.GroupExcept(chat.Id.ToString(), addedUserConnections).NewMemberAdded(chat.Id, response);
+        }
+
         return response;
     }
 }
