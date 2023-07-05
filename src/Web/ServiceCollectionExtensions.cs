@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Text;
 using Application.AppServices.Auth;
+using Application.AppServices.Chat;
+using Application.AppServices.User;
 using Application.Mapping;
 using Domain.Validators;
 using FluentValidation;
@@ -123,7 +125,7 @@ public static class ServiceCollectionExtensions
                     }
                 },
             });
-                o.AddSecurityRequirement(new OpenApiSecurityRequirement
+            o.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
                     new OpenApiSecurityScheme
@@ -140,6 +142,12 @@ public static class ServiceCollectionExtensions
         });
         return services;
     }
+
+    public static IServiceCollection AddUsersServices(this IServiceCollection services)
+    => services
+        .AddTransient<ICurrentUserService, CurrentUserService>()
+        .AddTransient<IUserAppService, UserAppService>()
+        .AddTransient<IChatService, ChatService>();
 
     public static IServiceCollection AddMappings(this IServiceCollection services)
     {
