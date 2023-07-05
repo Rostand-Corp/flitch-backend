@@ -27,9 +27,7 @@ builder.Services.AddDbContext<FlitchDbContext>(c =>
 builder.Services.AddFlitchAuth(builder.Configuration);
 builder.Services.AddFlitchEmailing(builder.Configuration);
 
-builder.Services.AddTransient<ICurrentUserService, CurrentUserService>();
-builder.Services.AddTransient<IUserAppService, UserAppService>();
-builder.Services.AddTransient<IChatService, ChatService>();
+builder.Services.AddUsersServices();
 builder.Services.AddSingleton<IUserConnectionMap<Guid>, UserConnectionMap<Guid>>();
 
 builder.Services.AddMappings();
